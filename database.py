@@ -179,24 +179,53 @@ def add_tour(tour_data: Dict) -> tuple[bool, str]:
     log_debug(f"Table '{TABLE_NAME}' existe")
     
     try:
-        # Préparer les données pour Supabase - vérifier que toutes les colonnes requises sont présentes
+        # Préparer les données pour Supabase - ALIGNEMENT EXACT avec les colonnes de la table
+        # Colonnes Supabase: date, start, etape, ziel, wetter, km, bemerkungen (toutes en minuscules)
         log_debug("Préparation des données pour Supabase...")
+        
+        # Conversion et validation des types de données SQL
+        date_str = str(tour_data.get('Date', '')).strip()
+        start_str = str(tour_data.get('Start', '')).strip()
+        ziel_str = str(tour_data.get('Ziel', '')).strip()
+        km_value = tour_data.get('Km', 0)
+        
+        # Convertir km en float (DECIMAL en SQL)
+        try:
+            km_float = float(km_value) if km_value else 0.0
+        except (ValueError, TypeError):
+            km_float = 0.0
+        
+        # Préparer les données avec les noms de colonnes EXACTS (minuscules)
         supabase_data = {
-            'date': str(tour_data.get('Date', '')),
-            'start': str(tour_data.get('Start', '')),
-            'etape': str(tour_data.get('Etape', '')) if tour_data.get('Etape') and tour_data.get('Etape') != 'N/A' else None,
-            'ziel': str(tour_data.get('Ziel', '')),
-            'wetter': str(tour_data.get('Wetter', '')) if tour_data.get('Wetter') else None,
-            'km': float(tour_data.get('Km', 0)),
-            'bemerkungen': str(tour_data.get('Bemerkungen', '')) if tour_data.get('Bemerkungen') else None
+            'date': date_str,  # VARCHAR(10) NOT NULL
+            'start': start_str,  # VARCHAR(255) NOT NULL
+            'ziel': ziel_str,  # VARCHAR(255) NOT NULL
+            'km': km_float,  # DECIMAL(10, 1) NOT NULL - converti en float
+            # Champs optionnels (peuvent être NULL)
+            'etape': None,
+            'wetter': None,
+            'bemerkungen': None
         }
         
-        if DEBUG:
-            log_debug("Données préparées pour Supabase:")
-            for key, value in supabase_data.items():
-                log_debug(f"  {key}: {value} (type: {type(value).__name__})")
+        # Gérer les champs optionnels
+        etape_val = tour_data.get('Etape', '')
+        if etape_val and etape_val != 'N/A' and str(etape_val).strip():
+            supabase_data['etape'] = str(etape_val).strip()
         
-        # Valider les champs requis
+        wetter_val = tour_data.get('Wetter', '')
+        if wetter_val and str(wetter_val).strip():
+            supabase_data['wetter'] = str(wetter_val).strip()
+        
+        bemerkungen_val = tour_data.get('Bemerkungen', '')
+        if bemerkungen_val and str(bemerkungen_val).strip():
+            supabase_data['bemerkungen'] = str(bemerkungen_val).strip()
+        
+        # Log des données préparées
+        log_debug("Données préparées pour Supabase (colonnes en minuscules):")
+        for key, value in supabase_data.items():
+            log_debug(f"  {key}: {repr(value)} (type: {type(value).__name__})")
+        
+        # Valider les champs requis (NOT NULL dans SQL)
         if not supabase_data['date']:
             error_msg = "La date est requise"
             log_error(error_msg)
@@ -212,17 +241,16 @@ def add_tour(tour_data: Dict) -> tuple[bool, str]:
         
         # Insérer dans Supabase
         log_debug(f"Tentative d'insertion dans la table '{TABLE_NAME}'...")
-        if DEBUG:
-            log_debug(f"Données à insérer: {supabase_data}")
+        log_debug(f"Données à insérer: {supabase_data}")
+        
         response = client.table(TABLE_NAME).insert(supabase_data).execute()
+        
         log_debug("Réponse Supabase reçue")
-        if DEBUG:
-            log_debug(f"Type de réponse: {type(response)}")
-            log_debug(f"Response.data: {response.data}")
-            log_debug(f"Response.status_code: {getattr(response, 'status_code', 'N/A')}")
+        log_debug(f"Response.data: {response.data}")
         
         if response.data:
-            log_debug(f"Tour enregistré avec succès. ID: {response.data[0].get('id', 'N/A') if response.data else 'N/A'}")
+            tour_id = response.data[0].get('id', 'N/A') if response.data else 'N/A'
+            log_debug(f"Tour enregistré avec succès. ID: {tour_id}")
             return True, "Tour enregistré avec succès"
         else:
             error_msg = "Aucune donnée retournée par Supabase"
@@ -234,9 +262,13 @@ def add_tour(tour_data: Dict) -> tuple[bool, str]:
         error_type = type(e).__name__
         log_error("===== ERREUR LORS DE L'AJOUT DU TOUR =====")
         log_error(f"Type d'erreur: {error_type}")
-        log_error(f"Message d'erreur: {error_msg}")
+        log_error(f"Erreur Supabase: {e}")
+        print(f"Erreur Supabase: {e}")  # Log supplémentaire pour Render
         if DEBUG:
-            log_error(f"Données qui ont causé l'erreur: {supabase_data}")
+            try:
+                log_error(f"Données qui ont causé l'erreur: {supabase_data}")
+            except:
+                log_error("Données non disponibles")
             import traceback
             log_error("Traceback complet:")
             traceback.print_exc()

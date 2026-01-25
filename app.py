@@ -208,15 +208,22 @@ def add_tour():
         if 'date' not in data:
             return jsonify({'success': False, 'error': 'La date est requise'}), 400
         
+        # Conversion des types de données pour SQL
         date_tour = datetime.datetime.strptime(data['date'], '%Y-%m-%d').date()
-        v_dep = data.get('depart', 'Kettenis')
-        v_etp = data.get('etape', '')
-        v_ret = data.get('arrivee', 'Kettenis')
-        dist = float(data.get('distance', 0))
-        h_dep = data.get('heure_depart', '10:00')
-        h_etp = data.get('heure_etape', '11:30')
-        h_ret = data.get('heure_arrivee', '12:30')
-        notes = data.get('notes', '')
+        v_dep = str(data.get('depart', 'Kettenis')).strip()
+        v_etp = str(data.get('etape', '')).strip()
+        v_ret = str(data.get('arrivee', 'Kettenis')).strip()
+        
+        # Conversion explicite en float pour SQL DECIMAL
+        try:
+            dist = float(data.get('distance', 0)) if data.get('distance') else 0.0
+        except (ValueError, TypeError):
+            dist = 0.0
+        
+        h_dep = str(data.get('heure_depart', '10:00')).strip()
+        h_etp = str(data.get('heure_etape', '11:30')).strip()
+        h_ret = str(data.get('heure_arrivee', '12:30')).strip()
+        notes = str(data.get('notes', '')).strip()
         
         m_dep = obtenir_meteo(v_dep)
         m_ret = obtenir_meteo(v_ret)
@@ -242,8 +249,12 @@ def add_tour():
                     print(f"[ERROR] Échec de l'enregistrement Supabase: {message}")
                     return jsonify({'success': False, 'error': message}), 500
             except Exception as e:
+                error_detail = str(e)
                 print(f"[ERROR] Exception lors de l'enregistrement Supabase: {e}")
-                return jsonify({'success': False, 'error': f'Erreur Supabase: {str(e)}'}), 500
+                print(f"Erreur Supabase: {e}")  # Log supplémentaire pour Render
+                import traceback
+                traceback.print_exc()
+                return jsonify({'success': False, 'error': f'Erreur Supabase: {error_detail}'}), 500
         else:
             # Fallback sur CSV
             try:
