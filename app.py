@@ -16,10 +16,28 @@ def obtenir_meteo(ville):
     if not ville or ville.strip() == "":
         return "N/A"
     try:
-        url = f"https://wttr.in/{ville}?format=%C+%t&lang=de&units=metric"
-        r = requests.get(url, timeout=10)
-        return r.text.strip() if r.status_code == 200 else "N/A"
-    except:
+        # Utiliser units=metric dans les params pour forcer les Celsius
+        url = f"https://wttr.in/{ville}"
+        params = {
+            'format': '%C+%t',
+            'lang': 'de',
+            'units': 'metric'  # Force les degrés Celsius
+        }
+        r = requests.get(url, params=params, timeout=10)
+        if r.status_code == 200:
+            result = r.text.strip()
+            # Vérification de sécurité : convertir °F en °C si nécessaire
+            if '°F' in result:
+                import re
+                def f_to_c(match):
+                    f = float(match.group(1))
+                    c = (f - 32) * 5/9
+                    return f"{c:.0f}°C"
+                result = re.sub(r'(-?\d+(?:\.\d+)?)°F', f_to_c, result)
+            return result
+        return "N/A"
+    except Exception as e:
+        print(f"[ERROR] Erreur météo pour {ville}: {e}")
         return "N/A"
 
 def charger_donnees():
