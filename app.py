@@ -62,7 +62,7 @@ def index():
 @app.route('/api/tours', methods=['GET'])
 def get_tours():
     try:
-    df = charger_donnees()
+        df = charger_donnees()
     except Exception as e:
         print(f"[ERROR] Erreur lors du chargement des données: {e}")
         # Retourner des données vides plutôt que de planter
