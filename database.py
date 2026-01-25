@@ -133,18 +133,27 @@ def ensure_table_exists():
 
 def get_all_tours() -> List[Dict]:
     """Récupère tous les tours depuis Supabase"""
-    client = get_supabase_client()
-    if not client:
-        return []
-    
-    # S'assurer que la table existe
-    ensure_table_exists()
-    
     try:
-        response = client.table(TABLE_NAME).select('*').order('id', desc=True).execute()
-        return response.data if response.data else []
+        client = get_supabase_client()
+        if not client:
+            log_debug("Client Supabase non disponible")
+            return []
+        
+        # Ne pas bloquer si la table n'existe pas encore
+        try:
+            response = client.table(TABLE_NAME).select('*').order('id', desc=True).execute()
+            return response.data if response.data else []
+        except Exception as e:
+            error_msg = str(e).lower()
+            # Si la table n'existe pas, retourner une liste vide plutôt que de planter
+            if 'relation' in error_msg and 'does not exist' in error_msg:
+                log_debug(f"Table '{TABLE_NAME}' n'existe pas encore")
+                return []
+            else:
+                log_error(f"Erreur lors de la récupération des tours: {e}")
+                return []
     except Exception as e:
-        print(f"Erreur lors de la récupération des tours: {e}")
+        log_error(f"Exception dans get_all_tours: {e}")
         return []
 
 def add_tour(tour_data: Dict) -> tuple[bool, str]:

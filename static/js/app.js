@@ -28,7 +28,20 @@ async function initializeApp() {
 // Charger les tours depuis l'API
 async function loadTours() {
     try {
-        const response = await fetch(`${API_BASE}/api/tours`);
+        // Timeout pour éviter que l'application reste bloquée
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 secondes max
+        
+        const response = await fetch(`${API_BASE}/api/tours`, {
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         toursData = data;
@@ -61,7 +74,31 @@ async function loadTours() {
         }
     } catch (error) {
         console.error('Erreur lors du chargement des tours:', error);
-        showToast('Erreur lors du chargement des données', 'error');
+        
+        // Afficher quand même les sections avec des valeurs par défaut
+        document.getElementById('statsSection').style.display = 'block';
+        document.getElementById('progressionSection').style.display = 'block';
+        document.getElementById('historySection').style.display = 'block';
+        
+        updateStats({
+            total_global: 0,
+            total_aujourdhui: 0,
+            total_semaine: 0,
+            total_mois: 0,
+            total_annee: 0
+        });
+        updateProgression({
+            ville_actuelle: '🏠 Kettenis',
+            prochaine_ville: '🇧🇪 Verviers',
+            km_restants: 18,
+            progression: 0
+        });
+        
+        const toursList = document.getElementById('toursList');
+        toursList.innerHTML = '<p style="color: rgba(255,255,255,0.8); text-align: center; padding: 20px; font-weight: 600;">Keine Touren vorhanden</p>';
+        
+        // Ne pas afficher de toast d'erreur pour ne pas perturber l'utilisateur
+        // Le formulaire reste fonctionnel même si le chargement échoue
     }
 }
 

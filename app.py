@@ -61,7 +61,13 @@ def index():
 
 @app.route('/api/tours', methods=['GET'])
 def get_tours():
-    df = charger_donnees()
+    try:
+        df = charger_donnees()
+    except Exception as e:
+        print(f"[ERROR] Erreur lors du chargement des données: {e}")
+        # Retourner des données vides plutôt que de planter
+        df = pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen"])
+    
     if df.empty:
         return jsonify({
             'tours': [],
@@ -192,48 +198,73 @@ def get_tours():
 
 @app.route('/api/tours', methods=['POST'])
 def add_tour():
-    data = request.json
-    
-    date_tour = datetime.datetime.strptime(data['date'], '%Y-%m-%d').date()
-    v_dep = data.get('depart', 'Kettenis')
-    v_etp = data.get('etape', '')
-    v_ret = data.get('arrivee', 'Kettenis')
-    dist = float(data.get('distance', 0))
-    h_dep = data.get('heure_depart', '10:00')
-    h_etp = data.get('heure_etape', '11:30')
-    h_ret = data.get('heure_arrivee', '12:30')
-    notes = data.get('notes', '')
-    
-    m_dep = obtenir_meteo(v_dep)
-    m_ret = obtenir_meteo(v_ret)
-    
-    nouvelle_entree = {
-        "Date": date_tour.strftime("%d/%m/%Y"),
-        "Start": f"{v_dep} ({h_dep})",
-        "Etape": f"{v_etp} ({h_etp})" if v_etp else "N/A",
-        "Ziel": f"{v_ret} ({h_ret})",
-        "Wetter": f"{m_dep} / {m_ret}",
-        "Km": dist,
-        "Bemerkungen": notes
-    }
-    
-    if USE_SUPABASE:
-        # Sauvegarder dans Supabase
-        success, message = add_tour_db(nouvelle_entree)
-        if success:
-            return jsonify({'success': True, 'message': 'Tour gespeichert!'})
+    try:
+        if not request.json:
+            return jsonify({'success': False, 'error': 'Aucune donnée reçue'}), 400
+        
+        data = request.json
+        
+        # Validation des données requises
+        if 'date' not in data:
+            return jsonify({'success': False, 'error': 'La date est requise'}), 400
+        
+        date_tour = datetime.datetime.strptime(data['date'], '%Y-%m-%d').date()
+        v_dep = data.get('depart', 'Kettenis')
+        v_etp = data.get('etape', '')
+        v_ret = data.get('arrivee', 'Kettenis')
+        dist = float(data.get('distance', 0))
+        h_dep = data.get('heure_depart', '10:00')
+        h_etp = data.get('heure_etape', '11:30')
+        h_ret = data.get('heure_arrivee', '12:30')
+        notes = data.get('notes', '')
+        
+        m_dep = obtenir_meteo(v_dep)
+        m_ret = obtenir_meteo(v_ret)
+        
+        nouvelle_entree = {
+            "Date": date_tour.strftime("%d/%m/%Y"),
+            "Start": f"{v_dep} ({h_dep})",
+            "Etape": f"{v_etp} ({h_etp})" if v_etp else "N/A",
+            "Ziel": f"{v_ret} ({h_ret})",
+            "Wetter": f"{m_dep} / {m_ret}",
+            "Km": dist,
+            "Bemerkungen": notes
+        }
+        
+        if USE_SUPABASE:
+            # Sauvegarder dans Supabase
+            try:
+                success, message = add_tour_db(nouvelle_entree)
+                if success:
+                    return jsonify({'success': True, 'message': 'Tour gespeichert!'})
+                else:
+                    # Retourner le message d'erreur explicite
+                    print(f"[ERROR] Échec de l'enregistrement Supabase: {message}")
+                    return jsonify({'success': False, 'error': message}), 500
+            except Exception as e:
+                print(f"[ERROR] Exception lors de l'enregistrement Supabase: {e}")
+                return jsonify({'success': False, 'error': f'Erreur Supabase: {str(e)}'}), 500
         else:
-            # Retourner le message d'erreur explicite
-            print(f"[ERROR] Échec de l'enregistrement Supabase: {message}")
-            return jsonify({'success': False, 'error': message}), 500
-    else:
-        # Fallback sur CSV
-        df = charger_donnees()
-        if 'Date_dt' in df.columns:
-            df = df.drop(columns=['Date_dt'])
-        df = pd.concat([df, pd.DataFrame([nouvelle_entree])], ignore_index=True)
-        df.to_csv(FICHIER_DATA, index=False)
-        return jsonify({'success': True, 'message': 'Tour gespeichert!'})
+            # Fallback sur CSV
+            try:
+                df = charger_donnees()
+                if 'Date_dt' in df.columns:
+                    df = df.drop(columns=['Date_dt'])
+                df = pd.concat([df, pd.DataFrame([nouvelle_entree])], ignore_index=True)
+                df.to_csv(FICHIER_DATA, index=False)
+                return jsonify({'success': True, 'message': 'Tour gespeichert!'})
+            except Exception as e:
+                print(f"[ERROR] Exception lors de l'enregistrement CSV: {e}")
+                return jsonify({'success': False, 'error': f'Erreur CSV: {str(e)}'}), 500
+                
+    except ValueError as e:
+        print(f"[ERROR] Erreur de validation: {e}")
+        return jsonify({'success': False, 'error': f'Données invalides: {str(e)}'}), 400
+    except Exception as e:
+        print(f"[ERROR] Erreur inattendue dans add_tour: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': f'Erreur serveur: {str(e)}'}), 500
 
 @app.route('/api/tours/<int:tour_id>', methods=['DELETE'])
 def delete_tour(tour_id):
