@@ -78,12 +78,13 @@ Opa'sBicycle/
 
 - **Backend** : Flask (Python)
 - **Frontend** : HTML5, CSS3 (glassmorphism), JavaScript (ES6+)
-- **Données** : Pandas, CSV
+- **Base de données** : Supabase (PostgreSQL) avec fallback CSV
 - **Météo** : API wttr.in
 
 ## 📝 Notes
 
-- Les données sont stockées dans `journal_velo.csv`
+- **Stockage des données** : L'application utilise Supabase (PostgreSQL) pour un stockage persistant. Si Supabase n'est pas configuré, elle utilise `journal_velo.csv` en fallback.
+- **Configuration Supabase** : Voir `SUPABASE_SETUP.md` pour les instructions détaillées.
 - La météo est récupérée automatiquement pour les lieux de départ et d'arrivée
 - L'application fonctionne hors ligne (sauf pour la météo)
 

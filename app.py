@@ -4,11 +4,13 @@ import pandas as pd
 import requests
 import os
 import urllib.parse
+from database import get_all_tours, add_tour as add_tour_db, delete_tour as delete_tour_db
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
 FICHIER_DATA = "journal_velo.csv"
+USE_SUPABASE = os.getenv('SUPABASE_URL') and os.getenv('SUPABASE_KEY')
 
 def obtenir_meteo(ville):
     if not ville or ville.strip() == "":
@@ -21,11 +23,37 @@ def obtenir_meteo(ville):
         return "N/A"
 
 def charger_donnees():
-    if os.path.exists(FICHIER_DATA):
-        df = pd.read_csv(FICHIER_DATA)
-        df['Date_dt'] = pd.to_datetime(df['Date'], format='%d/%m/%Y', errors='coerce')
+    """Charge les données depuis Supabase ou CSV selon la configuration"""
+    if USE_SUPABASE:
+        # Utiliser Supabase
+        tours = get_all_tours()
+        if not tours:
+            return pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen"])
+        
+        # Convertir les données Supabase en DataFrame
+        data = []
+        for tour in tours:
+            data.append({
+                "Date": tour.get('date', ''),
+                "Start": tour.get('start', ''),
+                "Etape": tour.get('etape', '') if tour.get('etape') else '',
+                "Ziel": tour.get('ziel', ''),
+                "Wetter": tour.get('wetter', ''),
+                "Km": float(tour.get('km', 0)),
+                "Bemerkungen": tour.get('bemerkungen', '') if tour.get('bemerkungen') else ''
+            })
+        
+        df = pd.DataFrame(data)
+        if not df.empty:
+            df['Date_dt'] = pd.to_datetime(df['Date'], format='%d/%m/%Y', errors='coerce')
         return df
-    return pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen"])
+    else:
+        # Fallback sur CSV
+        if os.path.exists(FICHIER_DATA):
+            df = pd.read_csv(FICHIER_DATA)
+            df['Date_dt'] = pd.to_datetime(df['Date'], format='%d/%m/%Y', errors='coerce')
+            return df
+        return pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen"])
 
 @app.route('/')
 def index():
@@ -116,19 +144,34 @@ def get_tours():
     diff_seg = km_palier_suivant - km_palier_actuel
     prog_v = (total_global - km_palier_actuel) / diff_seg if diff_seg > 0 else 1.0
     
-    # Convertir DataFrame en liste de dictionnaires avec les index
-    df_visu = df.sort_index(ascending=False)
-    # Supprimer la colonne Date_dt si elle existe
-    if 'Date_dt' in df_visu.columns:
-        df_visu = df_visu.drop(columns=['Date_dt'])
-    # Remplacer les NaN par des chaînes vides avant la conversion
-    df_visu = df_visu.fillna('')
-    # Préserver les index dans les données
-    tours = []
-    for idx, row in df_visu.iterrows():
-        tour_dict = row.to_dict()
-        tour_dict['_index'] = int(idx)  # Ajouter l'index réel du DataFrame
-        tours.append(tour_dict)
+    # Convertir en format pour l'API
+    if USE_SUPABASE:
+        # Utiliser les données Supabase directement
+        tours_data = get_all_tours()
+        tours = []
+        for tour in tours_data:
+            tour_dict = {
+                'Date': tour.get('date', ''),
+                'Start': tour.get('start', ''),
+                'Etape': tour.get('etape', '') if tour.get('etape') else '',
+                'Ziel': tour.get('ziel', ''),
+                'Wetter': tour.get('wetter', ''),
+                'Km': float(tour.get('km', 0)),
+                'Bemerkungen': tour.get('bemerkungen', '') if tour.get('bemerkungen') else '',
+                '_index': tour.get('id')  # Utiliser l'ID Supabase comme index
+            }
+            tours.append(tour_dict)
+    else:
+        # Utiliser le DataFrame (CSV)
+        df_visu = df.sort_index(ascending=False)
+        if 'Date_dt' in df_visu.columns:
+            df_visu = df_visu.drop(columns=['Date_dt'])
+        df_visu = df_visu.fillna('')
+        tours = []
+        for idx, row in df_visu.iterrows():
+            tour_dict = row.to_dict()
+            tour_dict['_index'] = int(idx)
+            tours.append(tour_dict)
     
     return jsonify({
         'tours': tours,
@@ -174,24 +217,41 @@ def add_tour():
         "Bemerkungen": notes
     }
     
-    df = charger_donnees()
-    if 'Date_dt' in df.columns:
-        df = df.drop(columns=['Date_dt'])
-    df = pd.concat([df, pd.DataFrame([nouvelle_entree])], ignore_index=True)
-    df.to_csv(FICHIER_DATA, index=False)
-    
-    return jsonify({'success': True, 'message': 'Tour gespeichert!'})
-
-@app.route('/api/tours/<int:index>', methods=['DELETE'])
-def delete_tour(index):
-    df = charger_donnees()
-    if index < len(df):
-        df = df.drop(index)
+    if USE_SUPABASE:
+        # Sauvegarder dans Supabase
+        success = add_tour_db(nouvelle_entree)
+        if success:
+            return jsonify({'success': True, 'message': 'Tour gespeichert!'})
+        else:
+            return jsonify({'success': False, 'error': 'Erreur lors de la sauvegarde'}), 500
+    else:
+        # Fallback sur CSV
+        df = charger_donnees()
         if 'Date_dt' in df.columns:
             df = df.drop(columns=['Date_dt'])
+        df = pd.concat([df, pd.DataFrame([nouvelle_entree])], ignore_index=True)
         df.to_csv(FICHIER_DATA, index=False)
-        return jsonify({'success': True})
-    return jsonify({'success': False, 'error': 'Index invalide'}), 400
+        return jsonify({'success': True, 'message': 'Tour gespeichert!'})
+
+@app.route('/api/tours/<int:tour_id>', methods=['DELETE'])
+def delete_tour(tour_id):
+    if USE_SUPABASE:
+        # Supprimer depuis Supabase (tour_id est l'ID Supabase)
+        success = delete_tour_db(tour_id)
+        if success:
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Erreur lors de la suppression'}), 500
+    else:
+        # Fallback sur CSV (tour_id est l'index du DataFrame)
+        df = charger_donnees()
+        if tour_id < len(df):
+            df = df.drop(tour_id)
+            if 'Date_dt' in df.columns:
+                df = df.drop(columns=['Date_dt'])
+            df.to_csv(FICHIER_DATA, index=False)
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'error': 'Index invalide'}), 400
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)

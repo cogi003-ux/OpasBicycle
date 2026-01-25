@@ -12,5 +12,8 @@ ENV/
 .DS_Store
 *.log
 
+# Variables d'environnement
+.env
+
 # Fichiers de données (optionnel - décommentez si vous ne voulez pas versionner les données)
 # journal_velo.csv
