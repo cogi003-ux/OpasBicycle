@@ -16,9 +16,15 @@ def get_supabase_client() -> Optional[Client]:
     supabase_key = os.getenv('SUPABASE_KEY')
     
     if not supabase_url or not supabase_key:
+        print("⚠️  SUPABASE_URL ou SUPABASE_KEY non définis dans les variables d'environnement")
         return None
     
-    return create_client(supabase_url, supabase_key)
+    try:
+        client = create_client(supabase_url, supabase_key)
+        return client
+    except Exception as e:
+        print(f"Erreur lors de la création du client Supabase: {e}")
+        return None
 
 def create_table_if_not_exists():
     """
@@ -114,32 +120,60 @@ def get_all_tours() -> List[Dict]:
         print(f"Erreur lors de la récupération des tours: {e}")
         return []
 
-def add_tour(tour_data: Dict) -> bool:
-    """Ajoute un nouveau tour dans Supabase"""
+def add_tour(tour_data: Dict) -> tuple[bool, str]:
+    """
+    Ajoute un nouveau tour dans Supabase
+    Retourne (success: bool, message: str)
+    """
     client = get_supabase_client()
     if not client:
-        return False
+        return False, "Supabase non configuré: SUPABASE_URL ou SUPABASE_KEY manquants"
     
-    # S'assurer que la table existe
-    ensure_table_exists()
+    # Vérifier que la table existe
+    if not ensure_table_exists():
+        return False, f"La table '{TABLE_NAME}' n'existe pas dans Supabase. Veuillez l'exécuter dans SQL Editor."
     
     try:
-        # Préparer les données pour Supabase
+        # Préparer les données pour Supabase - vérifier que toutes les colonnes requises sont présentes
         supabase_data = {
-            'date': tour_data.get('Date'),
-            'start': tour_data.get('Start'),
-            'etape': tour_data.get('Etape') or '',
-            'ziel': tour_data.get('Ziel'),
-            'wetter': tour_data.get('Wetter'),
+            'date': str(tour_data.get('Date', '')),
+            'start': str(tour_data.get('Start', '')),
+            'etape': str(tour_data.get('Etape', '')) if tour_data.get('Etape') and tour_data.get('Etape') != 'N/A' else None,
+            'ziel': str(tour_data.get('Ziel', '')),
+            'wetter': str(tour_data.get('Wetter', '')) if tour_data.get('Wetter') else None,
             'km': float(tour_data.get('Km', 0)),
-            'bemerkungen': tour_data.get('Bemerkungen') or ''
+            'bemerkungen': str(tour_data.get('Bemerkungen', '')) if tour_data.get('Bemerkungen') else None
         }
         
+        # Valider les champs requis
+        if not supabase_data['date']:
+            return False, "La date est requise"
+        if not supabase_data['start']:
+            return False, "Le lieu de départ est requis"
+        if not supabase_data['ziel']:
+            return False, "Le lieu d'arrivée est requis"
+        
+        # Insérer dans Supabase
         response = client.table(TABLE_NAME).insert(supabase_data).execute()
-        return True
+        
+        if response.data:
+            return True, "Tour enregistré avec succès"
+        else:
+            return False, "Aucune donnée retournée par Supabase"
+            
     except Exception as e:
-        print(f"Erreur lors de l'ajout du tour: {e}")
-        return False
+        error_msg = str(e)
+        print(f"Erreur détaillée lors de l'ajout du tour: {error_msg}")
+        
+        # Messages d'erreur plus explicites
+        if 'relation' in error_msg.lower() and 'does not exist' in error_msg.lower():
+            return False, f"La table '{TABLE_NAME}' n'existe pas. Exécutez le SQL dans Supabase SQL Editor."
+        elif 'permission denied' in error_msg.lower() or 'unauthorized' in error_msg.lower():
+            return False, "Erreur d'authentification Supabase. Vérifiez SUPABASE_KEY."
+        elif 'null value' in error_msg.lower():
+            return False, f"Champ requis manquant: {error_msg}"
+        else:
+            return False, f"Erreur Supabase: {error_msg}"
 
 def delete_tour(tour_id: int) -> bool:
     """Supprime un tour de Supabase par son ID"""
