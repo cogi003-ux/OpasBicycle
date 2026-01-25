@@ -219,12 +219,16 @@ def add_tour():
     
     if USE_SUPABASE:
         # Sauvegarder dans Supabase
+        print(f"[DEBUG] Tentative d'enregistrement dans Supabase...")
+        print(f"[DEBUG] USE_SUPABASE = {USE_SUPABASE}")
+        print(f"[DEBUG] Données à enregistrer: {nouvelle_entree}")
         success, message = add_tour_db(nouvelle_entree)
+        print(f"[DEBUG] Résultat: success={success}, message={message}")
         if success:
             return jsonify({'success': True, 'message': 'Tour gespeichert!'})
         else:
             # Retourner le message d'erreur explicite
-            print(f"Erreur Supabase: {message}")
+            print(f"[ERROR] Échec de l'enregistrement Supabase: {message}")
             return jsonify({'success': False, 'error': message}), 500
     else:
         # Fallback sur CSV

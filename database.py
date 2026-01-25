@@ -15,15 +15,31 @@ def get_supabase_client() -> Optional[Client]:
     supabase_url = os.getenv('SUPABASE_URL')
     supabase_key = os.getenv('SUPABASE_KEY')
     
+    # Logs détaillés pour débogage
+    print(f"[DEBUG] Vérification variables d'environnement:")
+    print(f"[DEBUG] SUPABASE_URL présent: {bool(supabase_url)}")
+    if supabase_url:
+        print(f"[DEBUG] SUPABASE_URL longueur: {len(supabase_url)} caractères")
+        print(f"[DEBUG] SUPABASE_URL commence par: {supabase_url[:20]}...")
+    print(f"[DEBUG] SUPABASE_KEY présent: {bool(supabase_key)}")
+    if supabase_key:
+        print(f"[DEBUG] SUPABASE_KEY longueur: {len(supabase_key)} caractères")
+        print(f"[DEBUG] SUPABASE_KEY commence par: {supabase_key[:10]}...")
+    
     if not supabase_url or not supabase_key:
-        print("⚠️  SUPABASE_URL ou SUPABASE_KEY non définis dans les variables d'environnement")
+        print("[ERROR] ⚠️  SUPABASE_URL ou SUPABASE_KEY non définis dans les variables d'environnement")
         return None
     
     try:
+        print("[DEBUG] Création du client Supabase...")
         client = create_client(supabase_url, supabase_key)
+        print("[DEBUG] Client Supabase créé avec succès")
         return client
     except Exception as e:
-        print(f"Erreur lors de la création du client Supabase: {e}")
+        print(f"[ERROR] Erreur lors de la création du client Supabase: {type(e).__name__}: {e}")
+        import traceback
+        print(f"[ERROR] Traceback complet:")
+        traceback.print_exc()
         return None
 
 def create_table_if_not_exists():
@@ -125,16 +141,26 @@ def add_tour(tour_data: Dict) -> tuple[bool, str]:
     Ajoute un nouveau tour dans Supabase
     Retourne (success: bool, message: str)
     """
+    print(f"[DEBUG] ===== DÉBUT add_tour =====")
+    print(f"[DEBUG] Données reçues: {tour_data}")
+    
     client = get_supabase_client()
     if not client:
-        return False, "Supabase non configuré: SUPABASE_URL ou SUPABASE_KEY manquants"
+        error_msg = "Supabase non configuré: SUPABASE_URL ou SUPABASE_KEY manquants"
+        print(f"[ERROR] {error_msg}")
+        return False, error_msg
     
     # Vérifier que la table existe
+    print(f"[DEBUG] Vérification de l'existence de la table '{TABLE_NAME}'...")
     if not ensure_table_exists():
-        return False, f"La table '{TABLE_NAME}' n'existe pas dans Supabase. Veuillez l'exécuter dans SQL Editor."
+        error_msg = f"La table '{TABLE_NAME}' n'existe pas dans Supabase. Veuillez l'exécuter dans SQL Editor."
+        print(f"[ERROR] {error_msg}")
+        return False, error_msg
+    print(f"[DEBUG] Table '{TABLE_NAME}' existe")
     
     try:
         # Préparer les données pour Supabase - vérifier que toutes les colonnes requises sont présentes
+        print(f"[DEBUG] Préparation des données pour Supabase...")
         supabase_data = {
             'date': str(tour_data.get('Date', '')),
             'start': str(tour_data.get('Start', '')),
@@ -145,35 +171,64 @@ def add_tour(tour_data: Dict) -> tuple[bool, str]:
             'bemerkungen': str(tour_data.get('Bemerkungen', '')) if tour_data.get('Bemerkungen') else None
         }
         
+        print(f"[DEBUG] Données préparées pour Supabase:")
+        for key, value in supabase_data.items():
+            print(f"[DEBUG]   {key}: {value} (type: {type(value).__name__})")
+        
         # Valider les champs requis
         if not supabase_data['date']:
-            return False, "La date est requise"
+            error_msg = "La date est requise"
+            print(f"[ERROR] {error_msg}")
+            return False, error_msg
         if not supabase_data['start']:
-            return False, "Le lieu de départ est requis"
+            error_msg = "Le lieu de départ est requis"
+            print(f"[ERROR] {error_msg}")
+            return False, error_msg
         if not supabase_data['ziel']:
-            return False, "Le lieu d'arrivée est requis"
+            error_msg = "Le lieu d'arrivée est requis"
+            print(f"[ERROR] {error_msg}")
+            return False, error_msg
         
         # Insérer dans Supabase
+        print(f"[DEBUG] Tentative d'insertion dans la table '{TABLE_NAME}'...")
+        print(f"[DEBUG] Données à insérer: {supabase_data}")
         response = client.table(TABLE_NAME).insert(supabase_data).execute()
+        print(f"[DEBUG] Réponse Supabase reçue")
+        print(f"[DEBUG] Type de réponse: {type(response)}")
+        print(f"[DEBUG] Response.data: {response.data}")
+        print(f"[DEBUG] Response.status_code: {getattr(response, 'status_code', 'N/A')}")
         
         if response.data:
+            print(f"[SUCCESS] Tour enregistré avec succès. ID: {response.data[0].get('id', 'N/A') if response.data else 'N/A'}")
             return True, "Tour enregistré avec succès"
         else:
-            return False, "Aucune donnée retournée par Supabase"
+            error_msg = "Aucune donnée retournée par Supabase"
+            print(f"[ERROR] {error_msg}")
+            return False, error_msg
             
     except Exception as e:
         error_msg = str(e)
-        print(f"Erreur détaillée lors de l'ajout du tour: {error_msg}")
+        error_type = type(e).__name__
+        print(f"[ERROR] ===== ERREUR LORS DE L'AJOUT DU TOUR =====")
+        print(f"[ERROR] Type d'erreur: {error_type}")
+        print(f"[ERROR] Message d'erreur: {error_msg}")
+        print(f"[ERROR] Données qui ont causé l'erreur: {supabase_data}")
+        import traceback
+        print(f"[ERROR] Traceback complet:")
+        traceback.print_exc()
+        print(f"[ERROR] ===========================================")
         
         # Messages d'erreur plus explicites
         if 'relation' in error_msg.lower() and 'does not exist' in error_msg.lower():
             return False, f"La table '{TABLE_NAME}' n'existe pas. Exécutez le SQL dans Supabase SQL Editor."
-        elif 'permission denied' in error_msg.lower() or 'unauthorized' in error_msg.lower():
+        elif 'permission denied' in error_msg.lower() or 'unauthorized' in error_msg.lower() or '401' in error_msg:
             return False, "Erreur d'authentification Supabase. Vérifiez SUPABASE_KEY."
-        elif 'null value' in error_msg.lower():
+        elif 'null value' in error_msg.lower() or 'not null' in error_msg.lower():
             return False, f"Champ requis manquant: {error_msg}"
+        elif 'column' in error_msg.lower() and 'does not exist' in error_msg.lower():
+            return False, f"Colonne inexistante dans la table: {error_msg}"
         else:
-            return False, f"Erreur Supabase: {error_msg}"
+            return False, f"Erreur Supabase ({error_type}): {error_msg}"
 
 def delete_tour(tour_id: int) -> bool:
     """Supprime un tour de Supabase par son ID"""
