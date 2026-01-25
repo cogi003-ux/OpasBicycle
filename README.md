@@ -26,8 +26,10 @@ python app.py
 
 3. Ouvrir dans le navigateur :
 ```
-http://localhost:5000
+http://localhost:5001
 ```
+
+**Note** : Le port 5001 est utilisé car le port 5000 est souvent occupé par AirPlay Receiver sur macOS.
 
 ## 📱 Accès depuis un smartphone
 
