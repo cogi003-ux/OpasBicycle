@@ -16,7 +16,7 @@ def obtenir_meteo(ville):
     if not ville or ville.strip() == "":
         return "N/A"
     try:
-        url = f"https://wttr.in/{ville}?format=%C+%t&lang=de"
+        url = f"https://wttr.in/{ville}?format=%C+%t&lang=de&units=metric"
         r = requests.get(url, timeout=10)
         return r.text.strip() if r.status_code == 200 else "N/A"
     except:
@@ -49,11 +49,11 @@ def charger_donnees():
         return df
     else:
         # Fallback sur CSV
-        if os.path.exists(FICHIER_DATA):
-            df = pd.read_csv(FICHIER_DATA)
-            df['Date_dt'] = pd.to_datetime(df['Date'], format='%d/%m/%Y', errors='coerce')
-            return df
-        return pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen"])
+    if os.path.exists(FICHIER_DATA):
+        df = pd.read_csv(FICHIER_DATA)
+        df['Date_dt'] = pd.to_datetime(df['Date'], format='%d/%m/%Y', errors='coerce')
+        return df
+    return pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen"])
 
 @app.route('/')
 def index():
@@ -62,7 +62,7 @@ def index():
 @app.route('/api/tours', methods=['GET'])
 def get_tours():
     try:
-        df = charger_donnees()
+    df = charger_donnees()
     except Exception as e:
         print(f"[ERROR] Erreur lors du chargement des données: {e}")
         # Retourner des données vides plutôt que de planter
@@ -80,9 +80,10 @@ def get_tours():
             },
             'progression': {
                 'ville_actuelle': '🏠 Kettenis',
-                'prochaine_ville': '🇧🇪 Verviers',
-                'km_restants': 18,
-                'progression': 0
+                'prochaine_ville': '🇧🇪 Liège',
+                'km_restants': 30,
+                'progression': 0,
+                'distance_kettenis': 30
             }
         })
     
@@ -95,48 +96,296 @@ def get_tours():
     total_mois = df[df['Date_dt'] >= auj.replace(day=1)]['Km'].sum()
     total_annee = df[df['Date_dt'] >= auj.replace(month=1, day=1)]['Km'].sum()
     
-    # Étapes
-    etapes = [
+    # Étapes basées sur distances routières réelles depuis Kettenis (tous les 30 km jusqu'à 6000 km, puis tous les 500 km)
+    etapes = []
+    
+    # De 0 à 6000 km : une ville tous les 30 km
+    villes_30km = [
         (0, "🏠 Kettenis"),
-        (18, "🇧🇪 Verviers"),
-        (42, "🇧🇪 Lüttich (Liège)"),
-        (75, "🇧🇪 Tongeren"),
-        (105, "🇧🇪 Hasselt"),
-        (135, "🇧🇪 Löwen (Leuven)"),
-        (155, "🇧🇪 Brüssel"),
-        (185, "🇧🇪 Gent"),
-        (212, "🇧🇪 Knokke-Heist"),
-        (245, "🇧🇪 Kortrijk (Courtrai)"),
-        (280, "🇩🇪 Gummersbach"),
-        (310, "🇩🇪 Siegen"),
-        (340, "🇩🇪 Marburg"),
-        (370, "🇩🇪 Giessen"),
-        (405, "🇩🇪 Wetzlar"),
-        (435, "🇩🇪 Fulda"),
-        (465, "🇩🇪 Bad Hersfeld"),
-        (500, "🇩🇪 Eisenach"),
-        (530, "🇩🇪 Gotha"),
-        (560, "🇩🇪 Erfurt"),
-        (590, "🇩🇪 Weimar"),
-        (620, "🇩🇪 Jena"),
-        (650, "🇩🇪 Gera"),
-        (680, "🇩🇪 Zwickau"),
-        (715, "🇩🇪 Chemnitz"),
-        (750, "🇩🇪 Dresden"),
-        (785, "🇩🇪 Görlitz"),
-        (830, "🇵🇱 Legnica"),
-        (890, "🇵🇱 Breslau (Wrocław)"),
-        (1060, "🇵🇱 Kattowitz"),
-        (1130, "🇵🇱 Krakau"),
-        (1360, "🇺🇦 Lwiw (Lemberg)"),
-        (1500, "🇺🇦 Ternopil"),
+        (30, "🇧🇪 Liège"),
+        (60, "🇳🇱 Maastricht"),
+        (90, "🇧🇪 Hasselt"),
+        (120, "🇧🇪 Leuven"),
+        (150, "🇧🇪 Bruxelles"),
+        (180, "🇧🇪 Anvers"),
+        (210, "🇧🇪 Gand"),
+        (240, "🇧🇪 Bruges"),
+        (270, "🇧🇪 Ostende"),
+        (300, "🇫🇷 Lille"),
+        (330, "🇫🇷 Arras"),
+        (360, "🇫🇷 Amiens"),
+        (390, "🇫🇷 Beauvais"),
+        (420, "🇫🇷 Paris"),
+        (450, "🇫🇷 Chartres"),
+        (480, "🇫🇷 Orléans"),
+        (510, "🇫🇷 Tours"),
+        (540, "🇫🇷 Poitiers"),
+        (570, "🇫🇷 Angoulême"),
+        (600, "🇫🇷 Bordeaux"),
+        (630, "🇫🇷 Arcachon"),
+        (660, "🇫🇷 Bayonne"),
+        (690, "🇪🇸 San Sebastian"),
+        (720, "🇪🇸 Bilbao"),
+        (750, "🇪🇸 Santander"),
+        (780, "🇪🇸 Oviedo"),
+        (810, "🇪🇸 Gijón"),
+        (840, "🇪🇸 Avilés"),
+        (870, "🇪🇸 La Coruña"),
+        (900, "🇪🇸 Vigo"),
+        (930, "🇵🇹 Porto"),
+        (960, "🇵🇹 Coimbra"),
+        (990, "🇵🇹 Leiria"),
+        (1020, "🇵🇹 Lisbonne"),
+        (1050, "🇵🇹 Setúbal"),
+        (1080, "🇵🇹 Évora"),
+        (1110, "🇪🇸 Badajoz"),
+        (1140, "🇪🇸 Mérida"),
+        (1170, "🇪🇸 Cáceres"),
+        (1200, "🇪🇸 Plasencia"),
+        (1230, "🇪🇸 Ávila"),
+        (1260, "🇪🇸 Madrid"),
+        (1290, "🇪🇸 Guadalajara"),
+        (1320, "🇪🇸 Sigüenza"),
+        (1350, "🇪🇸 Calatayud"),
+        (1380, "🇪🇸 Saragosse"),
+        (1410, "🇪🇸 Huesca"),
+        (1440, "🇪🇸 Jaca"),
+        (1470, "🇫🇷 Pau"),
+        (1500, "🇫🇷 Tarbes"),
+        (1530, "🇫🇷 Toulouse"),
+        (1560, "🇫🇷 Carcassonne"),
+        (1590, "🇫🇷 Narbonne"),
+        (1620, "🇫🇷 Montpellier"),
+        (1650, "🇫🇷 Nîmes"),
+        (1680, "🇫🇷 Avignon"),
+        (1710, "🇫🇷 Orange"),
+        (1740, "🇫🇷 Valence"),
+        (1770, "🇫🇷 Romans-sur-Isère"),
+        (1800, "🇫🇷 Grenoble"),
+        (1830, "🇫🇷 Chambéry"),
+        (1860, "🇫🇷 Annecy"),
+        (1890, "🇫🇷 Genève"),
+        (1920, "🇨🇭 Lausanne"),
+        (1950, "🇨🇭 Berne"),
+        (1980, "🇨🇭 Lucerne"),
+        (2010, "🇨🇭 Zurich"),
+        (2040, "🇨🇭 Schaffhausen"),
+        (2070, "🇩🇪 Constance"),
+        (2100, "🇩🇪 Ulm"),
+        (2130, "🇩🇪 Augsbourg"),
+        (2160, "🇩🇪 Munich"),
+        (2190, "🇩🇪 Rosenheim"),
+        (2220, "🇦🇹 Salzbourg"),
+        (2250, "🇦🇹 Linz"),
+        (2280, "🇦🇹 Vienne"),
+        (2310, "🇸🇰 Bratislava"),
+        (2340, "🇭🇺 Győr"),
+        (2370, "🇭🇺 Budapest"),
+        (2400, "🇭🇺 Székesfehérvár"),
+        (2430, "🇭🇺 Szombathely"),
+        (2460, "🇦🇹 Graz"),
+        (2490, "🇸🇮 Ljubljana"),
+        (2520, "🇭🇷 Zagreb"),
+        (2550, "🇭🇷 Karlovac"),
+        (2580, "🇭🇷 Rijeka"),
+        (2610, "🇭🇷 Pula"),
+        (2640, "🇮🇹 Trieste"),
+        (2670, "🇮🇹 Venise"),
+        (2700, "🇮🇹 Padoue"),
+        (2730, "🇮🇹 Vérone"),
+        (2760, "🇮🇹 Brescia"),
+        (2790, "🇮🇹 Milan"),
+        (2820, "🇮🇹 Pavie"),
+        (2850, "🇮🇹 Gênes"),
+        (2880, "🇮🇹 La Spezia"),
+        (2910, "🇮🇹 Pise"),
+        (2940, "🇮🇹 Florence"),
+        (2970, "🇮🇹 Arezzo"),
+        (3000, "🇮🇹 Pérouse"),
+        (3030, "🇮🇹 Terni"),
+        (3060, "🇮🇹 Rome"),
+        (3090, "🇮🇹 Latina"),
+        (3120, "🇮🇹 Naples"),
+        (3150, "🇮🇹 Salerne"),
+        (3180, "🇮🇹 Potenza"),
+        (3210, "🇮🇹 Bari"),
+        (3240, "🇮🇹 Brindisi"),
+        (3270, "🇬🇷 Igoumenitsa"),
+        (3300, "🇬🇷 Ioannina"),
+        (3330, "🇬🇷 Larissa"),
+        (3360, "🇬🇷 Lamia"),
+        (3390, "🇬🇷 Athènes"),
+        (3420, "🇬🇷 Le Pirée"),
+        (3450, "🇬🇷 Corinthe"),
+        (3480, "🇬🇷 Patras"),
+        (3510, "🇬🇷 Pyrgos"),
+        (3540, "🇬🇷 Kalamata"),
+        (3570, "🇬🇷 Sparte"),
+        (3600, "🇬🇷 Tripoli"),
+        (3630, "🇬🇷 Argos"),
+        (3660, "🇬🇷 Nauplie"),
+        (3690, "🇬🇷 Épidaure"),
+        (3720, "🇬🇷 Mycènes"),
+        (3750, "🇬🇷 Corinthe"),
+        (3780, "🇬🇷 Thèbes"),
+        (3810, "🇬🇷 Chalkida"),
+        (3840, "🇬🇷 Volos"),
+        (3870, "🇬🇷 Thessalonique"),
+        (3900, "🇬🇷 Kavala"),
+        (3930, "🇧🇬 Plovdiv"),
+        (3960, "🇧🇬 Sofia"),
+        (3990, "🇧🇬 Pernik"),
+        (4020, "🇷🇸 Niš"),
+        (4050, "🇷🇸 Belgrade"),
+        (4080, "🇷🇸 Novi Sad"),
+        (4110, "🇭🇺 Szeged"),
+        (4140, "🇭🇺 Kecskemét"),
+        (4170, "🇭🇺 Debrecen"),
+        (4200, "🇷🇴 Oradea"),
+        (4230, "🇷🇴 Cluj-Napoca"),
+        (4260, "🇷🇴 Târgu Mureș"),
+        (4290, "🇷🇴 Brașov"),
+        (4320, "🇷🇴 Bucarest"),
+        (4350, "🇷🇴 Ploiești"),
+        (4380, "🇷🇴 Pitești"),
+        (4410, "🇷🇴 Craiova"),
+        (4440, "🇷🇴 Drobeta-Turnu Severin"),
+        (4470, "🇷🇴 Timișoara"),
+        (4500, "🇷🇸 Subotica"),
+        (4530, "🇭🇺 Szeged"),
+        (4560, "🇭🇺 Békéscsaba"),
+        (4590, "🇭🇺 Arad"),
+        (4620, "🇷🇴 Arad"),
+        (4650, "🇷🇴 Deva"),
+        (4680, "🇷🇴 Alba Iulia"),
+        (4710, "🇷🇴 Sibiu"),
+        (4740, "🇷🇴 Sighișoara"),
+        (4770, "🇷🇴 Târgu Mureș"),
+        (4800, "🇷🇴 Miercurea Ciuc"),
+        (4830, "🇷🇴 Bacău"),
+        (4860, "🇷🇴 Iași"),
+        (4890, "🇲🇩 Chișinău"),
+        (4920, "🇺🇦 Odessa"),
+        (4950, "🇺🇦 Mykolaïv"),
+        (4980, "🇺🇦 Kherson"),
+        (5010, "🇺🇦 Melitopol"),
+        (5040, "🇺🇦 Marioupol"),
+        (5070, "🇺🇦 Donetsk"),
+        (5100, "🇺🇦 Luhansk"),
+        (5130, "🇷🇺 Rostov-sur-le-Don"),
+        (5160, "🇷🇺 Krasnodar"),
+        (5190, "🇷🇺 Sotchi"),
+        (5220, "🇬🇪 Batoumi"),
+        (5250, "🇬🇪 Koutaïssi"),
+        (5280, "🇬🇪 Tbilissi"),
+        (5310, "🇬🇪 Gori"),
+        (5340, "🇬🇪 Mtskheta"),
+        (5370, "🇦🇲 Erevan"),
+        (5400, "🇦🇲 Gyumri"),
+        (5430, "🇬🇪 Tbilissi"),
+        (5460, "🇦🇿 Bakou"),
+        (5490, "🇦🇿 Sumqayıt"),
+        (5520, "🇦🇿 Ganja"),
+        (5550, "🇦🇿 Şəki"),
+        (5580, "🇬🇪 Tbilissi"),
+        (5610, "🇹🇷 Trabzon"),
+        (5640, "🇹🇷 Rize"),
+        (5670, "🇹🇷 Erzurum"),
+        (5700, "🇹🇷 Kars"),
+        (5730, "🇹🇷 Ağrı"),
+        (5760, "🇹🇷 Van"),
+        (5790, "🇹🇷 Diyarbakır"),
+        (5820, "🇹🇷 Gaziantep"),
+        (5850, "🇹🇷 Adana"),
+        (5880, "🇹🇷 Mersin"),
+        (5910, "🇹🇷 Antalya"),
+        (5940, "🇹🇷 Konya"),
+        (5970, "🇹🇷 Ankara"),
+        (6000, "🇹🇷 Istanbul")
+    ]
+    
+    etapes.extend(villes_30km)
+    
+    # Au-delà de 6000 km : une ville tous les 500 km
+    villes_500km = [
+        (6500, "🇧🇬 Sofia"),
+        (7000, "🇷🇴 Bucarest"),
+        (7500, "🇺🇦 Kiev"),
+        (8000, "🇷🇺 Moscou"),
+        (8500, "🇷🇺 Saint-Pétersbourg"),
+        (9000, "🇫🇮 Helsinki"),
+        (9500, "🇸🇪 Stockholm"),
+        (10000, "🇳🇴 Oslo"),
+        (10500, "🇩🇰 Copenhague"),
+        (11000, "🇩🇪 Berlin"),
+        (11500, "🇵🇱 Varsovie"),
+        (12000, "🇨🇿 Prague"),
+        (12500, "🇦🇹 Vienne"),
+        (13000, "🇮🇹 Rome"),
+        (13500, "🇪🇸 Madrid"),
+        (14000, "🇵🇹 Lisbonne"),
+        (14500, "🇲🇦 Casablanca"),
+        (15000, "🇩🇿 Alger"),
+        (15500, "🇹🇳 Tunis"),
+        (16000, "🇱🇾 Tripoli"),
+        (16500, "🇪🇬 Le Caire"),
+        (17000, "🇸🇦 Riyad"),
+        (17500, "🇦🇪 Dubaï"),
+        (18000, "🇮🇷 Téhéran"),
+        (18500, "🇵🇰 Islamabad"),
+        (19000, "🇮🇳 New Delhi"),
+        (19500, "🇧🇩 Dacca"),
+        (20000, "🇲🇲 Rangoun"),
+        (20500, "🇹🇭 Bangkok"),
+        (21000, "🇻🇳 Hô Chi Minh-Ville"),
+        (21500, "🇰🇭 Phnom Penh"),
+        (22000, "🇱🇦 Vientiane"),
+        (22500, "🇨🇳 Pékin"),
+        (23000, "🇰🇷 Séoul"),
+        (23500, "🇯🇵 Tokyo"),
+        (24000, "🇷🇺 Vladivostok"),
+        (24500, "🇨🇳 Shanghai"),
+        (25000, "🇭🇰 Hong Kong"),
+        (25500, "🇵🇭 Manille"),
+        (26000, "🇮🇩 Jakarta"),
+        (26500, "🇸🇬 Singapour"),
+        (27000, "🇲🇾 Kuala Lumpur"),
+        (27500, "🇹🇭 Bangkok"),
+        (28000, "🇮🇳 Mumbai"),
+        (28500, "🇦🇪 Dubaï"),
+        (29000, "🇸🇦 Djeddah"),
+        (29500, "🇪🇬 Le Caire"),
+        (30000, "🇬🇷 Athènes"),
+        (30500, "🇮🇹 Rome"),
+        (31000, "🇫🇷 Paris"),
+        (31500, "🇬🇧 Londres"),
+        (32000, "🇮🇸 Reykjavik"),
+        (32500, "🇨🇦 Toronto"),
+        (33000, "🇺🇸 New York"),
+        (33500, "🇺🇸 Chicago"),
+        (34000, "🇺🇸 Los Angeles"),
+        (34500, "🇲🇽 Mexico"),
+        (35000, "🇧🇷 São Paulo"),
+        (35500, "🇦🇷 Buenos Aires"),
+        (36000, "🇨🇱 Santiago"),
+        (36500, "🇵🇪 Lima"),
+        (37000, "🇨🇴 Bogota"),
+        (37500, "🇻🇪 Caracas"),
+        (38000, "🇺🇸 Miami"),
+        (38500, "🇺🇸 New York"),
+        (39000, "🇬🇧 Londres"),
+        (39500, "🇫🇷 Paris"),
+        (40000, "🏠 Kettenis"),
         (40075, "🌍 Weltreise!")
     ]
     
+    etapes.extend(villes_500km)
+
     ville_actuelle = etapes[0][1]
     km_palier_actuel = etapes[0][0]
     prochaine_ville = etapes[1][1]
     km_palier_suivant = etapes[1][0]
+    distance_kettenis = 0  # Distance depuis Kettenis pour la prochaine ville
     
     for i in range(len(etapes)):
         if total_global >= etapes[i][0]:
@@ -145,11 +394,12 @@ def get_tours():
             if i + 1 < len(etapes):
                 prochaine_ville = etapes[i+1][1]
                 km_palier_suivant = etapes[i+1][0]
+                distance_kettenis = etapes[i+1][0]  # Distance routière depuis Kettenis
     
     km_restants = max(0.0, km_palier_suivant - total_global)
     diff_seg = km_palier_suivant - km_palier_actuel
     prog_v = (total_global - km_palier_actuel) / diff_seg if diff_seg > 0 else 1.0
-    
+
     # Convertir en format pour l'API
     if USE_SUPABASE:
         # Utiliser les données Supabase directement
@@ -192,7 +442,8 @@ def get_tours():
             'ville_actuelle': ville_actuelle,
             'prochaine_ville': prochaine_ville,
             'km_restants': float(km_restants),
-            'progression': float(prog_v)
+            'progression': float(prog_v),
+            'distance_kettenis': float(distance_kettenis)
         }
     })
 

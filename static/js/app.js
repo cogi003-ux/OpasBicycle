@@ -89,9 +89,10 @@ async function loadTours() {
         });
         updateProgression({
             ville_actuelle: '🏠 Kettenis',
-            prochaine_ville: '🇧🇪 Verviers',
-            km_restants: 18,
-            progression: 0
+            prochaine_ville: '🇧🇪 Liège',
+            km_restants: 30,
+            progression: 0,
+            distance_kettenis: 30
         });
         
         const toursList = document.getElementById('toursList');
@@ -114,7 +115,11 @@ function updateStats(stats) {
 // Mettre à jour la progression
 function updateProgression(progression) {
     document.getElementById('villeActuelle').textContent = progression.ville_actuelle;
-    document.getElementById('prochaineVille').textContent = progression.prochaine_ville;
+    
+    // Afficher "Prochaine étape : [Ville] à [Distance] de Kettenis"
+    const distanceKettenis = progression.distance_kettenis || progression.km_restants;
+    const prochaineVilleText = `${progression.prochaine_ville} à ${formatDistance(distanceKettenis)} de Kettenis`;
+    document.getElementById('prochaineVille').textContent = prochaineVilleText;
     document.getElementById('kmRestants').textContent = formatDistance(progression.km_restants);
     
     const progressPercent = Math.min(100, Math.max(0, progression.progression * 100));
