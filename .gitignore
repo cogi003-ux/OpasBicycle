@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+*.db
+*.sqlite
+.DS_Store
+*.log
+
+# Fichiers de données (optionnel - décommentez si vous ne voulez pas versionner les données)
+# journal_velo.csv

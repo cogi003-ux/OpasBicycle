@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚲 Opa's Bicycle</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div class="container">
+        <!-- Header -->
+        <header class="glass-card header-card">
+            <h1 class="title">🚲 Opa's Bicycle</h1>
+            <p class="subtitle">Mein Weltreise-Tracker</p>
+        </header>
+
+        <!-- Formulaire -->
+        <section class="glass-card form-card">
+            <h2>Neue Tour hinzufügen</h2>
+            <form id="tourForm" class="tour-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="date">Datum</label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="depart">Abfahrtsort</label>
+                        <input type="text" id="depart" name="depart" value="Kettenis" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="heure_depart">Abfahrtszeit</label>
+                        <input type="time" id="heure_depart" name="heure_depart" value="10:00" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="etape">Zwischenstopp</label>
+                        <input type="text" id="etape" name="etape">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="heure_etape">Zeit Zwischenstopp</label>
+                        <input type="time" id="heure_etape" name="heure_etape" value="11:30">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="arrivee">Ankunftsort</label>
+                        <input type="text" id="arrivee" name="arrivee" value="Kettenis" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="heure_arrivee">Ankunftszeit</label>
+                        <input type="time" id="heure_arrivee" name="heure_arrivee" value="12:30" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="distance">Kilometer (km)</label>
+                        <input type="number" id="distance" name="distance" min="0" step="0.1" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes">Bemerkungen</label>
+                    <textarea id="notes" name="notes" rows="3"></textarea>
+                </div>
+                
+                <div id="meteoLoading" style="display: none; margin-bottom: 15px; text-align: center; color: white; font-weight: 600;">
+                    <span>🌤️ Météo wird abgerufen...</span>
+                </div>
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    <span>Tour speichern</span>
+                </button>
+            </form>
+        </section>
+
+        <!-- Statistiques -->
+        <section class="stats-section" id="statsSection" style="display: none;">
+            <div class="stats-grid">
+                <div class="glass-card stat-card">
+                    <div class="stat-icon">☀️</div>
+                    <div class="stat-value" id="statAujourdhui">0 km</div>
+                    <div class="stat-label">Heute</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-value" id="statSemaine">0 km</div>
+                    <div class="stat-label">Woche</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-icon">📆</div>
+                    <div class="stat-value" id="statMois">0 km</div>
+                    <div class="stat-label">Monat</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-icon">🗓️</div>
+                    <div class="stat-value" id="statAnnee">0 km</div>
+                    <div class="stat-label">Jahr</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-icon">🌍</div>
+                    <div class="stat-value" id="statTotal">0 km</div>
+                    <div class="stat-label">Gesamt</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Progression -->
+        <section class="glass-card progression-card" id="progressionSection" style="display: none;">
+            <h2>🌍 Mein Weltreise-Fortschritt</h2>
+            <div class="progression-content">
+                <div class="current-location">
+                    <p class="location-label">Opa ist jetzt in</p>
+                    <h3 class="location-name" id="villeActuelle">🏠 Kettenis</h3>
+                </div>
+                <div class="next-location">
+                    <p>Nächstes Ziel: <span id="prochaineVille">🇧🇪 Verviers</span></p>
+                    <p class="km-restants">Noch <span id="kmRestants">18</span> km</p>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">0%</div>
+                </div>
+                <a href="#" id="emailLink" class="btn-secondary">
+                    📧 Zusammenfassung senden
+                </a>
+            </div>
+        </section>
+
+        <!-- Historique -->
+        <section class="glass-card history-card" id="historySection" style="display: none;">
+            <h2>📜 Letzte Touren</h2>
+            <div class="tours-list" id="toursList">
+                <!-- Les tours seront ajoutés dynamiquement -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
