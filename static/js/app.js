@@ -116,7 +116,7 @@ function updateStats(stats) {
 function updateProgression(progression) {
     document.getElementById('villeActuelle').textContent = progression.ville_actuelle;
     
-    // Afficher "Prochaine étape : [Ville] à [Distance] de Kettenis"
+    // Afficher "Nächste Etappe: [Ville] à [Distance] de Kettenis"
     const distanceKettenis = progression.distance_kettenis || progression.km_restants;
     const prochaineVilleText = `${progression.prochaine_ville} à ${formatDistance(distanceKettenis)} de Kettenis`;
     document.getElementById('prochaineVille').textContent = prochaineVilleText;
