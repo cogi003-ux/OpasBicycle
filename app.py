@@ -49,11 +49,11 @@ def charger_donnees():
         return df
     else:
         # Fallback sur CSV
-    if os.path.exists(FICHIER_DATA):
-        df = pd.read_csv(FICHIER_DATA)
-        df['Date_dt'] = pd.to_datetime(df['Date'], format='%d/%m/%Y', errors='coerce')
-        return df
-    return pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen"])
+        if os.path.exists(FICHIER_DATA):
+            df = pd.read_csv(FICHIER_DATA)
+            df['Date_dt'] = pd.to_datetime(df['Date'], format='%d/%m/%Y', errors='coerce')
+            return df
+        return pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen"])
 
 @app.route('/')
 def index():
