@@ -193,7 +193,7 @@ function updateProgression(data) {
     const kmRestDamien = progDamien.km_restants ?? 30;
     const nextCityDamien = progDamien.prochaine_ville || '🇧🇪 Liège';
     document.getElementById('prochaineVilleDamien').textContent = nextCityDamien;
-    document.getElementById('progressBarLabelDamien').textContent = `Auf dem Weg nach ${nextCityDamien.replace(/^[^\s]+\s/, '')}`;
+    document.getElementById('progressBarLabelDamien').textContent = `Aktuelle Etappe: Auf dem Weg nach ${nextCityDamien.replace(/^[^\s]+\s/, '')}`;
     document.getElementById('kmRestantsDamien').textContent = formatDistance(kmRestDamien);
     const pctDamien = Math.min(100, Math.max(0, (progDamien.progression ?? 0) * 100));
     document.getElementById('progressFillDamien').style.width = `${pctDamien}%`;
@@ -206,7 +206,7 @@ function updateProgression(data) {
     const kmRestOpa = progOpa.km_restants ?? 30;
     const nextCityOpa = progOpa.prochaine_ville || '🇧🇪 Liège';
     document.getElementById('prochaineVilleOpa').textContent = nextCityOpa;
-    document.getElementById('progressBarLabelOpa').textContent = `Auf dem Weg nach ${nextCityOpa.replace(/^[^\s]+\s/, '')}`;
+    document.getElementById('progressBarLabelOpa').textContent = `Aktuelle Etappe: Auf dem Weg nach ${nextCityOpa.replace(/^[^\s]+\s/, '')}`;
     document.getElementById('kmRestantsOpa').textContent = formatDistance(kmRestOpa);
     const pctOpa = Math.min(100, Math.max(0, (progOpa.progression ?? 0) * 100));
     document.getElementById('progressFillOpa').style.width = `${pctOpa}%`;

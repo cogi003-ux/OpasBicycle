@@ -507,13 +507,22 @@ body {
     gap: 8px;
 }
 
-.title-globe {
+.title-globe,
+.globe-icon {
     display: inline-block;
-    font-size: 1.2rem;
-    animation: globe-rotate 8s linear infinite;
+    animation: globe-spin 8s linear infinite;
 }
 
-@keyframes globe-rotate {
+.title-globe {
+    font-size: 1.2rem;
+}
+
+.globe-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+@keyframes globe-spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
