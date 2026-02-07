@@ -489,7 +489,7 @@ body {
     flex-direction: column;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 15px;
-    padding: 24px;
+    padding: 28px 32px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     flex: 1;
     min-width: 0;
@@ -670,6 +670,16 @@ body {
 .tour-field span {
     display: block;
     font-weight: 600;
+}
+
+.tour-remark {
+    grid-column: 1 / -1;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.55);
+    line-height: 1.4;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn-delete {

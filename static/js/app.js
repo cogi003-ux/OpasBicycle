@@ -188,20 +188,18 @@ function updateProgression(data) {
     
     // Damien-Spalte
     document.getElementById('villeActuelleDamien').textContent = progDamien.ville_actuelle || '🏠 Kettenis';
-    const distDamien = progDamien.distance_kettenis ?? progDamien.km_restants ?? 30;
-    document.getElementById('prochaineVilleDamien').textContent = 
-        `${progDamien.prochaine_ville || '🇧🇪 Liège'} – ${formatDistance(distDamien)} von Kettenis`;
-    document.getElementById('kmRestantsDamien').textContent = formatDistance(progDamien.km_restants ?? 30);
+    const kmRestDamien = progDamien.km_restants ?? 30;
+    document.getElementById('prochaineVilleDamien').textContent = progDamien.prochaine_ville || '🇧🇪 Liège';
+    document.getElementById('kmRestantsDamien').textContent = formatDistance(kmRestDamien);
     const pctDamien = Math.min(100, Math.max(0, (progDamien.progression ?? 0) * 100));
     document.getElementById('progressFillDamien').style.width = `${pctDamien}%`;
     document.getElementById('progressTextDamien').textContent = formatPercent(pctDamien);
     
     // Opa-Spalte
     document.getElementById('villeActuelleOpa').textContent = progOpa.ville_actuelle || '🏠 Kettenis';
-    const distOpa = progOpa.distance_kettenis ?? progOpa.km_restants ?? 30;
-    document.getElementById('prochaineVilleOpa').textContent = 
-        `${progOpa.prochaine_ville || '🇧🇪 Liège'} – ${formatDistance(distOpa)} von Kettenis`;
-    document.getElementById('kmRestantsOpa').textContent = formatDistance(progOpa.km_restants ?? 30);
+    const kmRestOpa = progOpa.km_restants ?? 30;
+    document.getElementById('prochaineVilleOpa').textContent = progOpa.prochaine_ville || '🇧🇪 Liège';
+    document.getElementById('kmRestantsOpa').textContent = formatDistance(kmRestOpa);
     const pctOpa = Math.min(100, Math.max(0, (progOpa.progression ?? 0) * 100));
     document.getElementById('progressFillOpa').style.width = `${pctOpa}%`;
     document.getElementById('progressTextOpa').textContent = formatPercent(pctOpa);
@@ -266,6 +264,9 @@ function displayTours(tours) {
                 <strong>Etape</strong>
                 <span>${tour.Etape}</span>
             </div>
+            ` : ''}
+            ${tour.Bemerkungen && String(tour.Bemerkungen).trim() ? `
+            <div class="tour-remark">${escapeHtml(String(tour.Bemerkungen).trim())}</div>
             ` : ''}
             <button class="btn-delete" onclick="deleteTour(${realIndex})" title="Löschen">❌</button>
         `;
@@ -367,14 +368,27 @@ async function deleteTour(index) {
     }
 }
 
-// Formater la distance (virgule belge)
-function formatDistance(km) {
-    return `${Number(km).toFixed(1).replace('.', ',')} km`;
+// Zahlenformat DE/BE: Tausendpunkt, Dezimalkomma (z.B. 13.000,0 km)
+function formatNumber(num, decimals = 1) {
+    const n = Number(num);
+    if (isNaN(n)) return '0,0';
+    const [intPart, decPart] = n.toFixed(decimals).split('.');
+    const intFormatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return decPart ? `${intFormatted},${decPart}` : intFormatted;
 }
 
-// Formater le pourcentage (virgule belge)
+function formatDistance(km) {
+    return `${formatNumber(km, 1)} km`;
+}
+
 function formatPercent(pct) {
-    return `${Number(pct).toFixed(1).replace('.', ',')} %`;
+    return `${formatNumber(pct, 1)} %`;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Afficher une notification toast
