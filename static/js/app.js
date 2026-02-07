@@ -187,6 +187,8 @@ function updateProgression(data) {
     const progOpa = data.progression_opa || {};
     
     // Damien-Spalte
+    const worldPctDamien = progDamien.world_tour_pct ?? (progDamien.progression ?? 0) * 100;
+    document.getElementById('globeMessageDamien').textContent = `Damien hat ${formatPercent(worldPctDamien)} der Weltreise geschafft!`;
     document.getElementById('villeActuelleDamien').textContent = progDamien.ville_actuelle || '🏠 Kettenis';
     const kmRestDamien = progDamien.km_restants ?? 30;
     document.getElementById('prochaineVilleDamien').textContent = progDamien.prochaine_ville || '🇧🇪 Liège';
@@ -196,6 +198,8 @@ function updateProgression(data) {
     document.getElementById('progressTextDamien').textContent = formatPercent(pctDamien);
     
     // Opa-Spalte
+    const worldPctOpa = progOpa.world_tour_pct ?? (progOpa.progression ?? 0) * 100;
+    document.getElementById('globeMessageOpa').textContent = `Opa hat ${formatPercent(worldPctOpa)} der Weltreise geschafft!`;
     document.getElementById('villeActuelleOpa').textContent = progOpa.ville_actuelle || '🏠 Kettenis';
     const kmRestOpa = progOpa.km_restants ?? 30;
     document.getElementById('prochaineVilleOpa').textContent = progOpa.prochaine_ville || '🇧🇪 Liège';
