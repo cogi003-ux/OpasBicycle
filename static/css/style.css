@@ -273,6 +273,28 @@ body {
     margin-bottom: 30px;
 }
 
+.stats-two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+.stats-user-block {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.stats-user-title {
+    color: #ffffff;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -821,6 +843,10 @@ body {
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 15px;
+    }
+
+    .stats-two-columns {
+        grid-template-columns: 1fr;
     }
 
     .progression-two-columns {

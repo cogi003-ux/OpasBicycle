@@ -50,12 +50,9 @@ async function loadTours() {
         document.getElementById('statsSection').style.display = 'block';
         document.getElementById('progressionSection').style.display = 'block';
         
-        updateStats(data.stats || {
-            total_global: 0,
-            total_aujourdhui: 0,
-            total_semaine: 0,
-            total_mois: 0,
-            total_annee: 0
+        updateStats({
+            stats_damien: data.stats_damien || { total_global: 0, total_aujourdhui: 0, total_semaine: 0, total_mois: 0, total_annee: 0 },
+            stats_opa: data.stats_opa || { total_global: 0, total_aujourdhui: 0, total_semaine: 0, total_mois: 0, total_annee: 0 }
         });
         updateProgression({
             progression_damien: data.progression_damien || {
@@ -103,11 +100,8 @@ async function loadTours() {
         document.getElementById('historySection').style.display = 'block';
         
         updateStats({
-            total_global: 0,
-            total_aujourdhui: 0,
-            total_semaine: 0,
-            total_mois: 0,
-            total_annee: 0
+            stats_damien: { total_global: 0, total_aujourdhui: 0, total_semaine: 0, total_mois: 0, total_annee: 0 },
+            stats_opa: { total_global: 0, total_aujourdhui: 0, total_semaine: 0, total_mois: 0, total_annee: 0 }
         });
         updateProgression({
             progression_damien: {
@@ -144,13 +138,22 @@ async function loadTours() {
     }
 }
 
-// Mettre à jour les statistiques
-function updateStats(stats) {
-    document.getElementById('statAujourdhui').textContent = formatDistance(stats.total_aujourdhui || 0);
-    document.getElementById('statSemaine').textContent = formatDistance(stats.total_semaine);
-    document.getElementById('statMois').textContent = formatDistance(stats.total_mois);
-    document.getElementById('statAnnee').textContent = formatDistance(stats.total_annee);
-    document.getElementById('statTotal').textContent = formatDistance(stats.total_global);
+// Statistiken pro Nutzer aktualisieren
+function updateStats(data) {
+    const statsDamien = data.stats_damien || {};
+    const statsOpa = data.stats_opa || {};
+    
+    document.getElementById('statDamienAujourdhui').textContent = formatDistance(statsDamien.total_aujourdhui || 0);
+    document.getElementById('statDamienSemaine').textContent = formatDistance(statsDamien.total_semaine || 0);
+    document.getElementById('statDamienMois').textContent = formatDistance(statsDamien.total_mois || 0);
+    document.getElementById('statDamienAnnee').textContent = formatDistance(statsDamien.total_annee || 0);
+    document.getElementById('statDamienTotal').textContent = formatDistance(statsDamien.total_global || 0);
+    
+    document.getElementById('statOpaAujourdhui').textContent = formatDistance(statsOpa.total_aujourdhui || 0);
+    document.getElementById('statOpaSemaine').textContent = formatDistance(statsOpa.total_semaine || 0);
+    document.getElementById('statOpaMois').textContent = formatDistance(statsOpa.total_mois || 0);
+    document.getElementById('statOpaAnnee').textContent = formatDistance(statsOpa.total_annee || 0);
+    document.getElementById('statOpaTotal').textContent = formatDistance(statsOpa.total_global || 0);
 }
 
 // Challenge Damien vs Opa aktualisieren

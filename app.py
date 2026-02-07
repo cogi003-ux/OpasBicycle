@@ -110,15 +110,18 @@ def get_tours():
             'distance_kettenis': 30.0,
             'world_tour_pct': 0.0
         }
+        empty_stats = {
+            'total_global': 0,
+            'total_aujourdhui': 0,
+            'total_semaine': 0,
+            'total_mois': 0,
+            'total_annee': 0
+        }
         return jsonify({
             'tours': [],
-            'stats': {
-                'total_global': 0,
-                'total_aujourdhui': 0,
-                'total_semaine': 0,
-                'total_mois': 0,
-                'total_annee': 0
-            },
+            'stats': empty_stats,
+            'stats_damien': empty_stats.copy(),
+            'stats_opa': empty_stats.copy(),
             'progression': empty_prog,
             'progression_damien': empty_prog.copy(),
             'progression_opa': empty_prog.copy(),
@@ -134,12 +137,31 @@ def get_tours():
     
     total_global = df['Km'].sum()
     
-    # Stats temporelles
+    # Stats temporelles (global + par utilisateur)
+    df_util = df.copy()
+    df_util['Utilisateur'] = df_util['Utilisateur'].fillna('Opa').astype(str).apply(_normalize_utilisateur)
+    df_damien = df_util[df_util['Utilisateur'] == 'Damien']
+    df_opa = df_util[df_util['Utilisateur'] == 'Opa']
+    
     auj = pd.Timestamp.now().normalize()
-    total_aujourdhui = df[df['Date_dt'] == auj]['Km'].sum()
-    total_semaine = df[df['Date_dt'] >= (auj - pd.Timedelta(days=auj.dayofweek))]['Km'].sum()
-    total_mois = df[df['Date_dt'] >= auj.replace(day=1)]['Km'].sum()
-    total_annee = df[df['Date_dt'] >= auj.replace(month=1, day=1)]['Km'].sum()
+    def _stats(df_sub):
+        if df_sub.empty:
+            return {'total_global': 0.0, 'total_aujourdhui': 0.0, 'total_semaine': 0.0, 'total_mois': 0.0, 'total_annee': 0.0}
+        return {
+            'total_global': float(df_sub['Km'].sum()),
+            'total_aujourdhui': float(df_sub[df_sub['Date_dt'] == auj]['Km'].sum()),
+            'total_semaine': float(df_sub[df_sub['Date_dt'] >= (auj - pd.Timedelta(days=auj.dayofweek))]['Km'].sum()),
+            'total_mois': float(df_sub[df_sub['Date_dt'] >= auj.replace(day=1)]['Km'].sum()),
+            'total_annee': float(df_sub[df_sub['Date_dt'] >= auj.replace(month=1, day=1)]['Km'].sum())
+        }
+    
+    stats_global = _stats(df)
+    total_aujourdhui = stats_global['total_aujourdhui']
+    total_semaine = stats_global['total_semaine']
+    total_mois = stats_global['total_mois']
+    total_annee = stats_global['total_annee']
+    stats_damien = _stats(df_damien)
+    stats_opa = _stats(df_opa)
     
     # Étapes basées sur distances routières réelles depuis Kettenis (tous les 30 km jusqu'à 6000 km, puis tous les 500 km)
     etapes = []
@@ -455,14 +477,8 @@ def get_tours():
         }
 
     # Calcul du Challenge Damien vs Opa
-    if 'Utilisateur' in df.columns:
-        df_util = df.copy()
-        df_util['Utilisateur'] = df_util['Utilisateur'].fillna('Opa').astype(str).apply(_normalize_utilisateur)
-        total_damien = df_util[df_util['Utilisateur'] == 'Damien']['Km'].sum()
-        total_opa = df_util[df_util['Utilisateur'] == 'Opa']['Km'].sum()
-    else:
-        total_damien = 0.0
-        total_opa = total_global  # Par défaut tout à Opa si pas de colonne
+    total_damien = stats_damien['total_global']
+    total_opa = stats_opa['total_global']
     difference = abs(total_damien - total_opa)
     if total_damien > total_opa:
         leader = 'Damien'
@@ -535,13 +551,9 @@ def get_tours():
     
     return jsonify({
         'tours': tours,
-        'stats': {
-            'total_global': float(total_global),
-            'total_aujourdhui': float(total_aujourdhui),
-            'total_semaine': float(total_semaine),
-            'total_mois': float(total_mois),
-            'total_annee': float(total_annee)
-        },
+        'stats': stats_global,
+        'stats_damien': stats_damien,
+        'stats_opa': stats_opa,
         'progression': progression_global,
         'progression_damien': progression_damien,
         'progression_opa': progression_opa,
