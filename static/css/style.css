@@ -322,6 +322,81 @@ body {
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 }
 
+/* Challenge Moi vs Opa */
+.challenge-card h2 {
+    color: white;
+    margin-bottom: 25px;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-shadow: 
+        1px 1px 5px rgba(0, 0, 0, 0.4),
+        0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+.challenge-content {
+    text-align: center;
+}
+
+.challenge-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 25px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.challenge-stat {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.challenge-label {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.challenge-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: white;
+    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+}
+
+.challenge-message {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
+    padding: 15px;
+}
+
+.form-group select {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 12px 15px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    outline: none;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+}
+
+.form-group select option {
+    background: #2d2d2d;
+    color: white;
+}
+
 /* Progression */
 .progression-card h2 {
     color: white;

@@ -196,11 +196,16 @@ def add_tour(tour_data: Dict) -> tuple[bool, str]:
             km_float = 0.0
         
         # Préparer les données avec les noms de colonnes EXACTS (minuscules)
+        utilisateur = str(tour_data.get('Utilisateur', 'Opa')).strip()
+        if utilisateur not in ('Moi', 'Opa'):
+            utilisateur = 'Opa'
+        
         supabase_data = {
             'date': date_str,  # VARCHAR(10) NOT NULL
             'start': start_str,  # VARCHAR(255) NOT NULL
             'ziel': ziel_str,  # VARCHAR(255) NOT NULL
             'km': km_float,  # DECIMAL(10, 1) NOT NULL - converti en float
+            'utilisateur': utilisateur,  # VARCHAR(10) : 'Moi' ou 'Opa'
             # Champs optionnels (peuvent être NULL)
             'etape': None,
             'wetter': None,

@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS rides (
     wetter VARCHAR(255),
     km DECIMAL(10, 1) NOT NULL,
     bemerkungen TEXT,
+    utilisateur VARCHAR(10) DEFAULT 'Opa',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

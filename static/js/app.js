@@ -64,6 +64,15 @@ async function loadTours() {
             progression: 0
         });
         
+        // Afficher le Challenge
+        document.getElementById('challengeSection').style.display = 'block';
+        updateChallenge(data.challenge || {
+            total_moi: 0,
+            total_opa: 0,
+            leader: 'Égalité',
+            difference: 0
+        });
+        
         // Toujours afficher l'historique (même vide)
         document.getElementById('historySection').style.display = 'block';
         if (data.tours && data.tours.length > 0) {
@@ -78,6 +87,7 @@ async function loadTours() {
         // Afficher quand même les sections avec des valeurs par défaut
         document.getElementById('statsSection').style.display = 'block';
         document.getElementById('progressionSection').style.display = 'block';
+        document.getElementById('challengeSection').style.display = 'block';
         document.getElementById('historySection').style.display = 'block';
         
         updateStats({
@@ -95,6 +105,14 @@ async function loadTours() {
             distance_kettenis: 30
         });
         
+        document.getElementById('challengeSection').style.display = 'block';
+        updateChallenge({
+            total_moi: 0,
+            total_opa: 0,
+            leader: 'Égalité',
+            difference: 0
+        });
+        
         const toursList = document.getElementById('toursList');
         toursList.innerHTML = '<p style="color: rgba(255,255,255,0.8); text-align: center; padding: 20px; font-weight: 600;">Keine Touren vorhanden</p>';
         
@@ -110,6 +128,21 @@ function updateStats(stats) {
     document.getElementById('statMois').textContent = formatDistance(stats.total_mois);
     document.getElementById('statAnnee').textContent = formatDistance(stats.total_annee);
     document.getElementById('statTotal').textContent = formatDistance(stats.total_global);
+}
+
+// Mettre à jour le Challenge Moi vs Opa
+function updateChallenge(challenge) {
+    document.getElementById('totalMoi').textContent = formatDistance(challenge.total_moi || 0);
+    document.getElementById('totalOpa').textContent = formatDistance(challenge.total_opa || 0);
+    
+    let message = '';
+    if (challenge.leader === 'Égalité') {
+        message = 'Égalité ! Moi et Opa ont parcouru la même distance.';
+    } else {
+        const diff = formatDistance(challenge.difference || 0);
+        message = `${challenge.leader} est en tête avec ${diff} d'avance !`;
+    }
+    document.getElementById('challengeMessage').textContent = message;
 }
 
 // Mettre à jour la progression
@@ -174,6 +207,10 @@ function displayTours(tours) {
                 <span>${formatDistance(tour.Km || 0)}</span>
             </div>
             <div class="tour-field">
+                <strong>Qui</strong>
+                <span>${tour.Utilisateur || 'Opa'}</span>
+            </div>
+            <div class="tour-field">
                 <strong>Bemerkungen</strong>
                 <span>${(tour.Bemerkungen && tour.Bemerkungen !== 'NaN' && tour.Bemerkungen !== 'nan') ? tour.Bemerkungen : ''}</span>
             </div>
@@ -210,7 +247,8 @@ async function handleFormSubmit(e) {
         heure_depart: document.getElementById('heure_depart').value,
         heure_etape: document.getElementById('heure_etape').value,
         heure_arrivee: document.getElementById('heure_arrivee').value,
-        notes: document.getElementById('notes').value
+        notes: document.getElementById('notes').value,
+        utilisateur: document.getElementById('utilisateur').value || 'Opa'
     };
     
     try {
@@ -235,6 +273,7 @@ async function handleFormSubmit(e) {
             document.getElementById('heure_depart').value = '10:00';
             document.getElementById('heure_etape').value = '11:30';
             document.getElementById('heure_arrivee').value = '12:30';
+            document.getElementById('utilisateur').value = 'Opa';
             
             // Recharger les données
             await loadTours();

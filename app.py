@@ -46,7 +46,7 @@ def charger_donnees():
         # Utiliser Supabase
         tours = get_all_tours()
         if not tours:
-            return pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen"])
+            return pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen", "Utilisateur"])
         
         # Convertir les données Supabase en DataFrame
         data = []
@@ -58,7 +58,8 @@ def charger_donnees():
                 "Ziel": tour.get('ziel', ''),
                 "Wetter": tour.get('wetter', ''),
                 "Km": float(tour.get('km', 0)),
-                "Bemerkungen": tour.get('bemerkungen', '') if tour.get('bemerkungen') else ''
+                "Bemerkungen": tour.get('bemerkungen', '') if tour.get('bemerkungen') else '',
+                "Utilisateur": tour.get('utilisateur', 'Opa') or 'Opa'
             })
         
         df = pd.DataFrame(data)
@@ -70,8 +71,12 @@ def charger_donnees():
         if os.path.exists(FICHIER_DATA):
             df = pd.read_csv(FICHIER_DATA)
             df['Date_dt'] = pd.to_datetime(df['Date'], format='%d/%m/%Y', errors='coerce')
+            # Ajouter colonne Utilisateur si absente (anciens fichiers)
+            if 'Utilisateur' not in df.columns:
+                df['Utilisateur'] = 'Opa'
+            df['Utilisateur'] = df['Utilisateur'].fillna('Opa')
             return df
-        return pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen"])
+        return pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen", "Utilisateur"])
 
 @app.route('/')
 def index():
@@ -84,7 +89,7 @@ def get_tours():
     except Exception as e:
         print(f"[ERROR] Erreur lors du chargement des données: {e}")
         # Retourner des données vides plutôt que de planter
-        df = pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen"])
+        df = pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen", "Utilisateur"])
     
     if df.empty:
         return jsonify({
@@ -102,6 +107,12 @@ def get_tours():
                 'km_restants': 30,
                 'progression': 0,
                 'distance_kettenis': 30
+            },
+            'challenge': {
+                'total_moi': 0,
+                'total_opa': 0,
+                'leader': 'Égalité',
+                'difference': 0
             }
         })
     
@@ -418,6 +429,29 @@ def get_tours():
     diff_seg = km_palier_suivant - km_palier_actuel
     prog_v = (total_global - km_palier_actuel) / diff_seg if diff_seg > 0 else 1.0
 
+    # Calcul du Challenge Moi vs Opa
+    if 'Utilisateur' in df.columns:
+        df_util = df.copy()
+        df_util['Utilisateur'] = df_util['Utilisateur'].fillna('Opa').astype(str).str.strip().str.upper()
+        total_moi = df_util[df_util['Utilisateur'] == 'MOI']['Km'].sum()
+        total_opa = df_util[df_util['Utilisateur'] == 'OPA']['Km'].sum()
+    else:
+        total_moi = 0.0
+        total_opa = total_global  # Par défaut tout à Opa si pas de colonne
+    difference = abs(total_moi - total_opa)
+    if total_moi > total_opa:
+        leader = 'Moi'
+    elif total_opa > total_moi:
+        leader = 'Opa'
+    else:
+        leader = 'Égalité'
+    challenge = {
+        'total_moi': float(total_moi),
+        'total_opa': float(total_opa),
+        'leader': leader,
+        'difference': float(difference)
+    }
+
     # Convertir en format pour l'API
     if USE_SUPABASE:
         # Utiliser les données Supabase directement
@@ -432,6 +466,7 @@ def get_tours():
                 'Wetter': tour.get('wetter', ''),
                 'Km': float(tour.get('km', 0)),
                 'Bemerkungen': tour.get('bemerkungen', '') if tour.get('bemerkungen') else '',
+                'Utilisateur': tour.get('utilisateur', 'Opa') or 'Opa',
                 '_index': tour.get('id')  # Utiliser l'ID Supabase comme index
             }
             tours.append(tour_dict)
@@ -445,6 +480,8 @@ def get_tours():
         for idx, row in df_visu.iterrows():
             tour_dict = row.to_dict()
             tour_dict['_index'] = int(idx)
+            if 'Utilisateur' not in tour_dict or pd.isna(tour_dict.get('Utilisateur')):
+                tour_dict['Utilisateur'] = 'Opa'
             tours.append(tour_dict)
     
     return jsonify({
@@ -462,7 +499,8 @@ def get_tours():
             'km_restants': float(km_restants),
             'progression': float(prog_v),
             'distance_kettenis': float(distance_kettenis)
-        }
+        },
+        'challenge': challenge
     })
 
 @app.route('/api/tours', methods=['POST'])
@@ -497,6 +535,11 @@ def add_tour():
         m_dep = obtenir_meteo(v_dep)
         m_ret = obtenir_meteo(v_ret)
         
+        # Qui a pédalé : Moi ou Opa
+        utilisateur = str(data.get('utilisateur', 'Opa')).strip()
+        if utilisateur not in ('Moi', 'Opa'):
+            utilisateur = 'Opa'
+        
         nouvelle_entree = {
             "Date": date_tour.strftime("%d/%m/%Y"),
             "Start": f"{v_dep} ({h_dep})",
@@ -504,7 +547,8 @@ def add_tour():
             "Ziel": f"{v_ret} ({h_ret})",
             "Wetter": f"{m_dep} / {m_ret}",
             "Km": dist,
-            "Bemerkungen": notes
+            "Bemerkungen": notes,
+            "Utilisateur": utilisateur
         }
         
         if USE_SUPABASE:
@@ -530,6 +574,9 @@ def add_tour():
                 df = charger_donnees()
                 if 'Date_dt' in df.columns:
                     df = df.drop(columns=['Date_dt'])
+                # S'assurer que la colonne Utilisateur existe
+                if 'Utilisateur' not in df.columns:
+                    df['Utilisateur'] = 'Opa'
                 df = pd.concat([df, pd.DataFrame([nouvelle_entree])], ignore_index=True)
                 df.to_csv(FICHIER_DATA, index=False)
                 return jsonify({'success': True, 'message': 'Tour gespeichert!'})
