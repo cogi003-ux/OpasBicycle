@@ -137,11 +137,13 @@ def get_tours():
     
     total_global = df['Km'].sum()
     
-    # Stats temporelles (global + par utilisateur)
+    # Stats temporelles : somme filtrée par Utilisateur (Damien / Opa)
     df_util = df.copy()
+    if 'Utilisateur' not in df_util.columns:
+        df_util['Utilisateur'] = 'Opa'
     df_util['Utilisateur'] = df_util['Utilisateur'].fillna('Opa').astype(str).apply(_normalize_utilisateur)
-    df_damien = df_util[df_util['Utilisateur'] == 'Damien']
-    df_opa = df_util[df_util['Utilisateur'] == 'Opa']
+    df_damien = df_util[df_util['Utilisateur'] == 'Damien']  # Uniquement les tours de Damien
+    df_opa = df_util[df_util['Utilisateur'] == 'Opa']        # Uniquement les tours d'Opa
     
     auj = pd.Timestamp.now().normalize()
     def _stats(df_sub):
