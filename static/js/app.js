@@ -191,7 +191,9 @@ function updateProgression(data) {
     document.getElementById('globeMessageDamien').textContent = `Damien hat ${formatPercent(worldPctDamien)} der Weltreise geschafft!`;
     document.getElementById('villeActuelleDamien').textContent = progDamien.ville_actuelle || '🏠 Kettenis';
     const kmRestDamien = progDamien.km_restants ?? 30;
-    document.getElementById('prochaineVilleDamien').textContent = progDamien.prochaine_ville || '🇧🇪 Liège';
+    const nextCityDamien = progDamien.prochaine_ville || '🇧🇪 Liège';
+    document.getElementById('prochaineVilleDamien').textContent = nextCityDamien;
+    document.getElementById('progressBarLabelDamien').textContent = `Auf dem Weg nach ${nextCityDamien.replace(/^[^\s]+\s/, '')}`;
     document.getElementById('kmRestantsDamien').textContent = formatDistance(kmRestDamien);
     const pctDamien = Math.min(100, Math.max(0, (progDamien.progression ?? 0) * 100));
     document.getElementById('progressFillDamien').style.width = `${pctDamien}%`;
@@ -202,7 +204,9 @@ function updateProgression(data) {
     document.getElementById('globeMessageOpa').textContent = `Opa hat ${formatPercent(worldPctOpa)} der Weltreise geschafft!`;
     document.getElementById('villeActuelleOpa').textContent = progOpa.ville_actuelle || '🏠 Kettenis';
     const kmRestOpa = progOpa.km_restants ?? 30;
-    document.getElementById('prochaineVilleOpa').textContent = progOpa.prochaine_ville || '🇧🇪 Liège';
+    const nextCityOpa = progOpa.prochaine_ville || '🇧🇪 Liège';
+    document.getElementById('prochaineVilleOpa').textContent = nextCityOpa;
+    document.getElementById('progressBarLabelOpa').textContent = `Auf dem Weg nach ${nextCityOpa.replace(/^[^\s]+\s/, '')}`;
     document.getElementById('kmRestantsOpa').textContent = formatDistance(kmRestOpa);
     const pctOpa = Math.min(100, Math.max(0, (progOpa.progression ?? 0) * 100));
     document.getElementById('progressFillOpa').style.width = `${pctOpa}%`;
@@ -372,13 +376,12 @@ async function deleteTour(index) {
     }
 }
 
-// Zahlenformat DE/BE: Tausendpunkt, Dezimalkomma (z.B. 13.000,0 km)
+// Zahlenformat DE/BE: Dezimalkomma, kein Tausendertrennzeichen (z.B. 12890,0 km)
 function formatNumber(num, decimals = 1) {
     const n = Number(num);
     if (isNaN(n)) return '0,0';
     const [intPart, decPart] = n.toFixed(decimals).split('.');
-    const intFormatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    return decPart ? `${intFormatted},${decPart}` : intFormatted;
+    return decPart ? `${intPart},${decPart}` : intPart;
 }
 
 function formatDistance(km) {
