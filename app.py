@@ -102,6 +102,13 @@ def get_tours():
         df = pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen", "Utilisateur"])
     
     if df.empty:
+        empty_prog = {
+            'ville_actuelle': '🏠 Kettenis',
+            'prochaine_ville': '🇧🇪 Liège',
+            'km_restants': 30.0,
+            'progression': 0.0,
+            'distance_kettenis': 30.0
+        }
         return jsonify({
             'tours': [],
             'stats': {
@@ -111,17 +118,13 @@ def get_tours():
                 'total_mois': 0,
                 'total_annee': 0
             },
-            'progression': {
-                'ville_actuelle': '🏠 Kettenis',
-                'prochaine_ville': '🇧🇪 Liège',
-                'km_restants': 30,
-                'progression': 0,
-                'distance_kettenis': 30
-            },
+            'progression': empty_prog,
+            'progression_damien': empty_prog.copy(),
+            'progression_opa': empty_prog.copy(),
             'challenge': {
                 'total_damien': 0,
                 'total_opa': 0,
-                'leader': 'Égalité',
+                'leader': 'Unentschieden',
                 'difference': 0,
                 'world_tour_damien': {'km': 0, 'pct': 0, 'target': TOUR_DU_MONDE_KM},
                 'world_tour_opa': {'km': 0, 'pct': 0, 'target': TOUR_DU_MONDE_KM}
@@ -422,24 +425,31 @@ def get_tours():
     
     etapes.extend(villes_500km)
 
-    ville_actuelle = etapes[0][1]
-    km_palier_actuel = etapes[0][0]
-    prochaine_ville = etapes[1][1]
-    km_palier_suivant = etapes[1][0]
-    distance_kettenis = 0  # Distance depuis Kettenis pour la prochaine ville
-    
-    for i in range(len(etapes)):
-        if total_global >= etapes[i][0]:
-            ville_actuelle = etapes[i][1]
-            km_palier_actuel = etapes[i][0]
-            if i + 1 < len(etapes):
-                prochaine_ville = etapes[i+1][1]
-                km_palier_suivant = etapes[i+1][0]
-                distance_kettenis = etapes[i+1][0]  # Distance routière depuis Kettenis
-    
-    km_restants = max(0.0, km_palier_suivant - total_global)
-    diff_seg = km_palier_suivant - km_palier_actuel
-    prog_v = (total_global - km_palier_actuel) / diff_seg if diff_seg > 0 else 1.0
+    def _compute_progression(total_km, etapes_list):
+        """Berechnet Fortschritt für eine gegebene Gesamtstrecke in km."""
+        ville_actuelle = etapes_list[0][1]
+        km_palier_actuel = etapes_list[0][0]
+        prochaine_ville = etapes_list[1][1]
+        km_palier_suivant = etapes_list[1][0]
+        distance_kettenis = 0.0
+        for i in range(len(etapes_list)):
+            if total_km >= etapes_list[i][0]:
+                ville_actuelle = etapes_list[i][1]
+                km_palier_actuel = etapes_list[i][0]
+                if i + 1 < len(etapes_list):
+                    prochaine_ville = etapes_list[i+1][1]
+                    km_palier_suivant = etapes_list[i+1][0]
+                    distance_kettenis = float(etapes_list[i+1][0])
+        km_restants = max(0.0, km_palier_suivant - total_km)
+        diff_seg = km_palier_suivant - km_palier_actuel
+        prog_v = (total_km - km_palier_actuel) / diff_seg if diff_seg > 0 else 1.0
+        return {
+            'ville_actuelle': ville_actuelle,
+            'prochaine_ville': prochaine_ville,
+            'km_restants': float(km_restants),
+            'progression': float(prog_v),
+            'distance_kettenis': float(distance_kettenis)
+        }
 
     # Calcul du Challenge Damien vs Opa
     if 'Utilisateur' in df.columns:
@@ -456,7 +466,7 @@ def get_tours():
     elif total_opa > total_damien:
         leader = 'Opa'
     else:
-        leader = 'Égalité'
+        leader = 'Unentschieden'
     
     # Challenge individuel Tour du Monde (40 075 km chacun)
     pct_damien = min(100.0, (total_damien / TOUR_DU_MONDE_KM) * 100)
@@ -478,6 +488,11 @@ def get_tours():
             'target': TOUR_DU_MONDE_KM
         }
     }
+
+    # Individueller Fortschritt für Damien und Opa
+    progression_damien = _compute_progression(total_damien, etapes)
+    progression_opa = _compute_progression(total_opa, etapes)
+    progression_global = _compute_progression(total_global, etapes)
 
     # Convertir en format pour l'API
     if USE_SUPABASE:
@@ -522,13 +537,9 @@ def get_tours():
             'total_mois': float(total_mois),
             'total_annee': float(total_annee)
         },
-        'progression': {
-            'ville_actuelle': ville_actuelle,
-            'prochaine_ville': prochaine_ville,
-            'km_restants': float(km_restants),
-            'progression': float(prog_v),
-            'distance_kettenis': float(distance_kettenis)
-        },
+        'progression': progression_global,
+        'progression_damien': progression_damien,
+        'progression_opa': progression_opa,
         'challenge': challenge
     })
 

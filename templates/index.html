@@ -62,7 +62,7 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="utilisateur">Qui a pédalé ?</label>
+                        <label for="utilisateur">Wer ist gefahren?</label>
                         <select id="utilisateur" name="utilisateur" required>
                             <option value="Opa">Opa</option>
                             <option value="Damien">Damien</option>
@@ -76,7 +76,7 @@
                 </div>
                 
                 <div id="meteoLoading" style="display: none; margin-bottom: 15px; text-align: center; color: white; font-weight: 600;">
-                    <span>🌤️ Météo wird abgerufen...</span>
+                    <span>🌤️ Wetter wird abgerufen...</span>
                 </div>
                 <button type="submit" class="btn-primary" id="submitBtn">
                     <span>Tour speichern</span>
@@ -115,9 +115,9 @@
             </div>
         </section>
 
-        <!-- Challenge Damien vs Opa + Tour du Monde individuel -->
+        <!-- Weltreise-Challenge Damien vs Opa -->
         <section class="glass-card challenge-card" id="challengeSection" style="display: none;">
-            <h2>🏆 Challenge Damien vs Opa</h2>
+            <h2>🏆 Weltreise-Challenge Damien vs Opa</h2>
             <div class="challenge-content">
                 <div class="challenge-stats">
                     <div class="challenge-stat">
@@ -130,10 +130,10 @@
                     </div>
                 </div>
                 <div class="challenge-message" id="challengeMessage">
-                    Égalité ! Aucune sortie enregistrée.
+                    Unentschieden! Keine Touren eingetragen.
                 </div>
             </div>
-            <h3 class="world-tour-title">🌍 Tour du Monde (40 075 km chacun)</h3>
+            <h3 class="world-tour-title">🌍 Weltumrundung (40 075 km pro Person)</h3>
             <div class="world-tour-grid">
                 <div class="world-tour-item">
                     <div class="world-tour-label">Damien</div>
@@ -154,31 +154,53 @@
             </div>
         </section>
 
-        <!-- Progression -->
+        <!-- Progression: Zwei gleich große Spalten (Damien | Opa) -->
         <section class="glass-card progression-card" id="progressionSection" style="display: none;">
             <h2>🌍 Mein Weltreise-Fortschritt</h2>
-            <div class="progression-content">
-                <div class="current-location">
-                    <p class="location-label">Opa ist jetzt in</p>
-                    <h3 class="location-name" id="villeActuelle">🏠 Kettenis</h3>
-                </div>
-                <div class="next-location">
-                    <p>Nächste Etappe: <span id="prochaineVille">🇧🇪 Liège à 30,0 km de Kettenis</span></p>
-                    <p class="km-restants">Noch <span id="kmRestants">30</span> km</p>
-                </div>
-                <div class="progress-container">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill"></div>
+            <div class="progression-two-columns">
+                <div class="progression-column">
+                    <h3 class="progression-column-title">Damien</h3>
+                    <div class="current-location">
+                        <p class="location-label">Damien ist jetzt in</p>
+                        <h3 class="location-name" id="villeActuelleDamien">🏠 Kettenis</h3>
                     </div>
-                    <div class="progress-text" id="progressText">0%</div>
+                    <div class="next-location">
+                        <p>Nächste Etappe: <span id="prochaineVilleDamien">🇧🇪 Liège – 30,0 km von Kettenis</span></p>
+                        <p class="km-restants">Noch <span id="kmRestantsDamien">30</span> km</p>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFillDamien"></div>
+                        </div>
+                        <div class="progress-text" id="progressTextDamien">0 %</div>
+                    </div>
                 </div>
+                <div class="progression-column">
+                    <h3 class="progression-column-title">Opa</h3>
+                    <div class="current-location">
+                        <p class="location-label">Opa ist jetzt in</p>
+                        <h3 class="location-name" id="villeActuelleOpa">🏠 Kettenis</h3>
+                    </div>
+                    <div class="next-location">
+                        <p>Nächste Etappe: <span id="prochaineVilleOpa">🇧🇪 Liège – 30,0 km von Kettenis</span></p>
+                        <p class="km-restants">Noch <span id="kmRestantsOpa">30</span> km</p>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFillOpa"></div>
+                        </div>
+                        <div class="progress-text" id="progressTextOpa">0 %</div>
+                    </div>
+                </div>
+            </div>
+            <div class="progression-footer">
                 <a href="#" id="emailLink" class="btn-secondary">
                     📧 Zusammenfassung senden
                 </a>
             </div>
         </section>
 
-        <!-- Historique en 2 colonnes -->
+        <!-- Historie in 2 Spalten -->
         <section class="glass-card history-card" id="historySection" style="display: none;">
             <h2>📜 Letzte Touren</h2>
             <div class="history-two-columns">

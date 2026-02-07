@@ -57,11 +57,21 @@ async function loadTours() {
             total_mois: 0,
             total_annee: 0
         });
-        updateProgression(data.progression || {
-            ville_actuelle: '🏠 Kettenis',
-            prochaine_ville: '🇧🇪 Verviers',
-            km_restants: 18,
-            progression: 0
+        updateProgression({
+            progression_damien: data.progression_damien || {
+                ville_actuelle: '🏠 Kettenis',
+                prochaine_ville: '🇧🇪 Liège',
+                km_restants: 30,
+                progression: 0,
+                distance_kettenis: 30
+            },
+            progression_opa: data.progression_opa || {
+                ville_actuelle: '🏠 Kettenis',
+                prochaine_ville: '🇧🇪 Liège',
+                km_restants: 30,
+                progression: 0,
+                distance_kettenis: 30
+            }
         });
         
         // Afficher le Challenge
@@ -69,7 +79,7 @@ async function loadTours() {
         updateChallenge(data.challenge || {
             total_damien: 0,
             total_opa: 0,
-            leader: 'Égalité',
+            leader: 'Unentschieden',
             difference: 0,
             world_tour_damien: { km: 0, pct: 0, target: 40075 },
             world_tour_opa: { km: 0, pct: 0, target: 40075 }
@@ -100,18 +110,27 @@ async function loadTours() {
             total_annee: 0
         });
         updateProgression({
-            ville_actuelle: '🏠 Kettenis',
-            prochaine_ville: '🇧🇪 Liège',
-            km_restants: 30,
-            progression: 0,
-            distance_kettenis: 30
+            progression_damien: {
+                ville_actuelle: '🏠 Kettenis',
+                prochaine_ville: '🇧🇪 Liège',
+                km_restants: 30,
+                progression: 0,
+                distance_kettenis: 30
+            },
+            progression_opa: {
+                ville_actuelle: '🏠 Kettenis',
+                prochaine_ville: '🇧🇪 Liège',
+                km_restants: 30,
+                progression: 0,
+                distance_kettenis: 30
+            }
         });
         
         document.getElementById('challengeSection').style.display = 'block';
         updateChallenge({
             total_damien: 0,
             total_opa: 0,
-            leader: 'Égalité',
+            leader: 'Unentschieden',
             difference: 0,
             world_tour_damien: { km: 0, pct: 0, target: 40075 },
             world_tour_opa: { km: 0, pct: 0, target: 40075 }
@@ -134,17 +153,17 @@ function updateStats(stats) {
     document.getElementById('statTotal').textContent = formatDistance(stats.total_global);
 }
 
-// Mettre à jour le Challenge Damien vs Opa
+// Challenge Damien vs Opa aktualisieren
 function updateChallenge(challenge) {
     document.getElementById('totalDamien').textContent = formatDistance(challenge.total_damien || 0);
     document.getElementById('totalOpa').textContent = formatDistance(challenge.total_opa || 0);
     
     let message = '';
-    if (challenge.leader === 'Égalité') {
-        message = 'Égalité ! Damien et Opa ont parcouru la même distance.';
+    if (challenge.leader === 'Égalité' || challenge.leader === 'Unentschieden') {
+        message = 'Unentschieden! Damien und Opa haben die gleiche Strecke zurückgelegt.';
     } else {
         const diff = formatDistance(challenge.difference || 0);
-        message = `${challenge.leader} est en tête avec ${diff} d'avance !`;
+        message = `${challenge.leader} führt mit ${diff} Vorsprung!`;
     }
     document.getElementById('challengeMessage').textContent = message;
     
@@ -162,24 +181,36 @@ function updateChallenge(challenge) {
     document.getElementById('worldTourOpaPct').textContent = formatPercent(wtOpa.pct || 0);
 }
 
-// Mettre à jour la progression
-function updateProgression(progression) {
-    document.getElementById('villeActuelle').textContent = progression.ville_actuelle;
+// Fortschritt für Damien und Opa aktualisieren (zwei Spalten)
+function updateProgression(data) {
+    const progDamien = data.progression_damien || {};
+    const progOpa = data.progression_opa || {};
     
-    // Afficher "Nächste Etappe: [Ville] à [Distance] de Kettenis"
-    const distanceKettenis = progression.distance_kettenis || progression.km_restants;
-    const prochaineVilleText = `${progression.prochaine_ville} à ${formatDistance(distanceKettenis)} de Kettenis`;
-    document.getElementById('prochaineVille').textContent = prochaineVilleText;
-    document.getElementById('kmRestants').textContent = formatDistance(progression.km_restants);
+    // Damien-Spalte
+    document.getElementById('villeActuelleDamien').textContent = progDamien.ville_actuelle || '🏠 Kettenis';
+    const distDamien = progDamien.distance_kettenis ?? progDamien.km_restants ?? 30;
+    document.getElementById('prochaineVilleDamien').textContent = 
+        `${progDamien.prochaine_ville || '🇧🇪 Liège'} – ${formatDistance(distDamien)} von Kettenis`;
+    document.getElementById('kmRestantsDamien').textContent = formatDistance(progDamien.km_restants ?? 30);
+    const pctDamien = Math.min(100, Math.max(0, (progDamien.progression ?? 0) * 100));
+    document.getElementById('progressFillDamien').style.width = `${pctDamien}%`;
+    document.getElementById('progressTextDamien').textContent = formatPercent(pctDamien);
     
-    const progressPercent = Math.min(100, Math.max(0, progression.progression * 100));
-    document.getElementById('progressFill').style.width = `${progressPercent}%`;
-    document.getElementById('progressText').textContent = `${progressPercent.toFixed(1)}%`;
+    // Opa-Spalte
+    document.getElementById('villeActuelleOpa').textContent = progOpa.ville_actuelle || '🏠 Kettenis';
+    const distOpa = progOpa.distance_kettenis ?? progOpa.km_restants ?? 30;
+    document.getElementById('prochaineVilleOpa').textContent = 
+        `${progOpa.prochaine_ville || '🇧🇪 Liège'} – ${formatDistance(distOpa)} von Kettenis`;
+    document.getElementById('kmRestantsOpa').textContent = formatDistance(progOpa.km_restants ?? 30);
+    const pctOpa = Math.min(100, Math.max(0, (progOpa.progression ?? 0) * 100));
+    document.getElementById('progressFillOpa').style.width = `${pctOpa}%`;
+    document.getElementById('progressTextOpa').textContent = formatPercent(pctOpa);
     
-    // Mettre à jour le lien email
+    // E-Mail-Link (Gesamtfortschritt)
+    const progGlobal = data.progression || progOpa;
     const emailSubject = encodeURIComponent("Opa's Bicycle Update");
     const emailBody = encodeURIComponent(
-        `Gesamt: ${formatDistance(toursData.stats.total_global)}\nOrt: ${progression.ville_actuelle}`
+        `Gesamt: ${formatDistance(toursData.stats?.total_global || 0)}\nDamien: ${progDamien.ville_actuelle || '🏠 Kettenis'}\nOpa: ${progOpa.ville_actuelle || '🏠 Kettenis'}`
     );
     document.getElementById('emailLink').href = `mailto:cogi003@gmail.com?subject=${emailSubject}&body=${emailBody}`;
 }
