@@ -197,8 +197,9 @@ def add_tour(tour_data: Dict) -> tuple[bool, str]:
         
         # Préparer les données avec les noms de colonnes EXACTS (minuscules)
         utilisateur = str(tour_data.get('Utilisateur', 'Opa')).strip()
-        if utilisateur not in ('Moi', 'Opa'):
-            utilisateur = 'Opa'
+        if utilisateur not in ('Damien', 'Opa'):
+            # Rétrocompatibilité : Moi -> Damien
+            utilisateur = 'Damien' if utilisateur.upper() == 'MOI' else 'Opa'
         
         supabase_data = {
             'date': date_str,  # VARCHAR(10) NOT NULL

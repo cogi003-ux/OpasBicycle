@@ -65,7 +65,7 @@
                         <label for="utilisateur">Qui a pédalé ?</label>
                         <select id="utilisateur" name="utilisateur" required>
                             <option value="Opa">Opa</option>
-                            <option value="Moi">Moi</option>
+                            <option value="Damien">Damien</option>
                         </select>
                     </div>
                 </div>
@@ -115,14 +115,14 @@
             </div>
         </section>
 
-        <!-- Challenge Moi vs Opa -->
+        <!-- Challenge Damien vs Opa + Tour du Monde individuel -->
         <section class="glass-card challenge-card" id="challengeSection" style="display: none;">
-            <h2>🏆 Afficher le Challenge</h2>
+            <h2>🏆 Challenge Damien vs Opa</h2>
             <div class="challenge-content">
                 <div class="challenge-stats">
                     <div class="challenge-stat">
-                        <div class="challenge-label">Moi</div>
-                        <div class="challenge-value" id="totalMoi">0 km</div>
+                        <div class="challenge-label">Damien</div>
+                        <div class="challenge-value" id="totalDamien">0 km</div>
                     </div>
                     <div class="challenge-stat">
                         <div class="challenge-label">Opa</div>
@@ -131,6 +131,25 @@
                 </div>
                 <div class="challenge-message" id="challengeMessage">
                     Égalité ! Aucune sortie enregistrée.
+                </div>
+            </div>
+            <h3 class="world-tour-title">🌍 Tour du Monde (40 075 km chacun)</h3>
+            <div class="world-tour-grid">
+                <div class="world-tour-item">
+                    <div class="world-tour-label">Damien</div>
+                    <div class="world-tour-value" id="worldTourDamienKm">0 km</div>
+                    <div class="progress-bar-small">
+                        <div class="progress-fill-small" id="worldTourDamienFill"></div>
+                    </div>
+                    <div class="world-tour-pct" id="worldTourDamienPct">0 %</div>
+                </div>
+                <div class="world-tour-item">
+                    <div class="world-tour-label">Opa</div>
+                    <div class="world-tour-value" id="worldTourOpaKm">0 km</div>
+                    <div class="progress-bar-small">
+                        <div class="progress-fill-small" id="worldTourOpaFill"></div>
+                    </div>
+                    <div class="world-tour-pct" id="worldTourOpaPct">0 %</div>
                 </div>
             </div>
         </section>
@@ -159,11 +178,18 @@
             </div>
         </section>
 
-        <!-- Historique -->
+        <!-- Historique en 2 colonnes -->
         <section class="glass-card history-card" id="historySection" style="display: none;">
             <h2>📜 Letzte Touren</h2>
-            <div class="tours-list" id="toursList">
-                <!-- Les tours seront ajoutés dynamiquement -->
+            <div class="history-two-columns">
+                <div class="history-column">
+                    <h3 class="history-column-title">Damien</h3>
+                    <div class="tours-list" id="toursListDamien"></div>
+                </div>
+                <div class="history-column">
+                    <h3 class="history-column-title">Opa</h3>
+                    <div class="tours-list" id="toursListOpa"></div>
+                </div>
             </div>
         </section>
     </div>

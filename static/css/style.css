@@ -25,20 +25,12 @@ body {
     font-weight: 500;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    background-size: 400% 400%;
-    animation: gradientShift 15s ease infinite;
+    background: #0f172a;
     min-height: 100vh;
     padding: 20px;
-    color: var(--text-primary);
+    color: #ffffff;
     position: relative;
     overflow-x: hidden;
-}
-
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
 }
 
 .background-animation {
@@ -49,10 +41,8 @@ body {
     height: 100%;
     z-index: 0;
     background: 
-        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
-    animation: float 20s ease-in-out infinite;
+        radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
     pointer-events: none;
 }
 
@@ -68,16 +58,16 @@ body {
     z-index: 1;
 }
 
-/* Glass Card Effect */
+/* Glass Card Effect - Liquid Glass sur Bleu Nuit */
 .glass-card {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 
-        0 8px 32px 0 rgba(31, 38, 135, 0.37),
-        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        0 8px 32px 0 rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
     padding: 30px;
     margin-bottom: 30px;
     transition: all 0.3s ease;
@@ -103,8 +93,8 @@ body {
 .glass-card:hover {
     transform: translateY(-5px);
     box-shadow: 
-        0 12px 40px 0 rgba(31, 38, 135, 0.5),
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        0 12px 40px 0 rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 /* Header */
@@ -322,7 +312,7 @@ body {
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-/* Challenge Moi vs Opa */
+/* Challenge Damien vs Opa */
 .challenge-card h2 {
     color: white;
     margin-bottom: 25px;
@@ -372,9 +362,97 @@ body {
 .challenge-message {
     font-size: 1.2rem;
     font-weight: 700;
-    color: white;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
+    color: #ffffff;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
     padding: 15px;
+}
+
+/* Tour du Monde individuel (40 075 km) */
+.world-tour-title {
+    color: #ffffff;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 25px 0 20px;
+    text-align: center;
+}
+
+.world-tour-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.world-tour-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.world-tour-label {
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 8px;
+}
+
+.world-tour-value {
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.progress-bar-small {
+    width: 100%;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-fill-small {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    border-radius: 6px;
+    transition: width 0.5s ease;
+}
+
+.world-tour-pct {
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+/* Historique en 2 colonnes */
+.history-two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.history-column {
+    min-height: 200px;
+}
+
+.history-column-title {
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.empty-history {
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    padding: 30px;
+    font-weight: 600;
 }
 
 .form-group select {
@@ -393,8 +471,8 @@ body {
 }
 
 .form-group select option {
-    background: #2d2d2d;
-    color: white;
+    background: #0f172a;
+    color: #ffffff;
 }
 
 /* Progression */
@@ -629,6 +707,14 @@ body {
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 15px;
+    }
+
+    .history-two-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .world-tour-grid {
+        grid-template-columns: 1fr;
     }
 
     .tour-item {

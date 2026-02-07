@@ -11,6 +11,16 @@ app.config['JSON_AS_ASCII'] = False
 
 FICHIER_DATA = "journal_velo.csv"
 USE_SUPABASE = os.getenv('SUPABASE_URL') and os.getenv('SUPABASE_KEY')
+TOUR_DU_MONDE_KM = 40075  # Circonférence de la Terre en km
+
+def _normalize_utilisateur(val):
+    """Normalise l'utilisateur : Damien ou Opa. 'Moi' -> 'Damien' pour rétrocompatibilité."""
+    v = str(val or 'Opa').strip()
+    if v.upper() == 'MOI':
+        return 'Damien'
+    if v == 'Damien' or v == 'Opa':
+        return v
+    return 'Opa'
 
 def obtenir_meteo(ville):
     if not ville or ville.strip() == "":
@@ -59,7 +69,7 @@ def charger_donnees():
                 "Wetter": tour.get('wetter', ''),
                 "Km": float(tour.get('km', 0)),
                 "Bemerkungen": tour.get('bemerkungen', '') if tour.get('bemerkungen') else '',
-                "Utilisateur": tour.get('utilisateur', 'Opa') or 'Opa'
+                "Utilisateur": _normalize_utilisateur(tour.get('utilisateur', 'Opa'))
             })
         
         df = pd.DataFrame(data)
@@ -71,10 +81,10 @@ def charger_donnees():
         if os.path.exists(FICHIER_DATA):
             df = pd.read_csv(FICHIER_DATA)
             df['Date_dt'] = pd.to_datetime(df['Date'], format='%d/%m/%Y', errors='coerce')
-            # Ajouter colonne Utilisateur si absente (anciens fichiers)
+            # Ajouter colonne Utilisateur si absente (anciens fichiers) - défaut Opa
             if 'Utilisateur' not in df.columns:
                 df['Utilisateur'] = 'Opa'
-            df['Utilisateur'] = df['Utilisateur'].fillna('Opa')
+            df['Utilisateur'] = df['Utilisateur'].fillna('Opa').astype(str).apply(_normalize_utilisateur)
             return df
         return pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen", "Utilisateur"])
 
@@ -109,10 +119,12 @@ def get_tours():
                 'distance_kettenis': 30
             },
             'challenge': {
-                'total_moi': 0,
+                'total_damien': 0,
                 'total_opa': 0,
                 'leader': 'Égalité',
-                'difference': 0
+                'difference': 0,
+                'world_tour_damien': {'km': 0, 'pct': 0, 'target': TOUR_DU_MONDE_KM},
+                'world_tour_opa': {'km': 0, 'pct': 0, 'target': TOUR_DU_MONDE_KM}
             }
         })
     
@@ -429,27 +441,42 @@ def get_tours():
     diff_seg = km_palier_suivant - km_palier_actuel
     prog_v = (total_global - km_palier_actuel) / diff_seg if diff_seg > 0 else 1.0
 
-    # Calcul du Challenge Moi vs Opa
+    # Calcul du Challenge Damien vs Opa
     if 'Utilisateur' in df.columns:
         df_util = df.copy()
-        df_util['Utilisateur'] = df_util['Utilisateur'].fillna('Opa').astype(str).str.strip().str.upper()
-        total_moi = df_util[df_util['Utilisateur'] == 'MOI']['Km'].sum()
-        total_opa = df_util[df_util['Utilisateur'] == 'OPA']['Km'].sum()
+        df_util['Utilisateur'] = df_util['Utilisateur'].fillna('Opa').astype(str).apply(_normalize_utilisateur)
+        total_damien = df_util[df_util['Utilisateur'] == 'Damien']['Km'].sum()
+        total_opa = df_util[df_util['Utilisateur'] == 'Opa']['Km'].sum()
     else:
-        total_moi = 0.0
+        total_damien = 0.0
         total_opa = total_global  # Par défaut tout à Opa si pas de colonne
-    difference = abs(total_moi - total_opa)
-    if total_moi > total_opa:
-        leader = 'Moi'
-    elif total_opa > total_moi:
+    difference = abs(total_damien - total_opa)
+    if total_damien > total_opa:
+        leader = 'Damien'
+    elif total_opa > total_damien:
         leader = 'Opa'
     else:
         leader = 'Égalité'
+    
+    # Challenge individuel Tour du Monde (40 075 km chacun)
+    pct_damien = min(100.0, (total_damien / TOUR_DU_MONDE_KM) * 100)
+    pct_opa = min(100.0, (total_opa / TOUR_DU_MONDE_KM) * 100)
+    
     challenge = {
-        'total_moi': float(total_moi),
+        'total_damien': float(total_damien),
         'total_opa': float(total_opa),
         'leader': leader,
-        'difference': float(difference)
+        'difference': float(difference),
+        'world_tour_damien': {
+            'km': float(total_damien),
+            'pct': float(pct_damien),
+            'target': TOUR_DU_MONDE_KM
+        },
+        'world_tour_opa': {
+            'km': float(total_opa),
+            'pct': float(pct_opa),
+            'target': TOUR_DU_MONDE_KM
+        }
     }
 
     # Convertir en format pour l'API
@@ -466,7 +493,7 @@ def get_tours():
                 'Wetter': tour.get('wetter', ''),
                 'Km': float(tour.get('km', 0)),
                 'Bemerkungen': tour.get('bemerkungen', '') if tour.get('bemerkungen') else '',
-                'Utilisateur': tour.get('utilisateur', 'Opa') or 'Opa',
+                'Utilisateur': _normalize_utilisateur(tour.get('utilisateur', 'Opa')),
                 '_index': tour.get('id')  # Utiliser l'ID Supabase comme index
             }
             tours.append(tour_dict)
@@ -482,6 +509,8 @@ def get_tours():
             tour_dict['_index'] = int(idx)
             if 'Utilisateur' not in tour_dict or pd.isna(tour_dict.get('Utilisateur')):
                 tour_dict['Utilisateur'] = 'Opa'
+            else:
+                tour_dict['Utilisateur'] = _normalize_utilisateur(tour_dict['Utilisateur'])
             tours.append(tour_dict)
     
     return jsonify({
@@ -535,10 +564,8 @@ def add_tour():
         m_dep = obtenir_meteo(v_dep)
         m_ret = obtenir_meteo(v_ret)
         
-        # Qui a pédalé : Moi ou Opa
-        utilisateur = str(data.get('utilisateur', 'Opa')).strip()
-        if utilisateur not in ('Moi', 'Opa'):
-            utilisateur = 'Opa'
+        # Qui a pédalé : Damien ou Opa
+        utilisateur = _normalize_utilisateur(data.get('utilisateur', 'Opa'))
         
         nouvelle_entree = {
             "Date": date_tour.strftime("%d/%m/%Y"),

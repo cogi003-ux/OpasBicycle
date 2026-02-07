@@ -67,10 +67,12 @@ async function loadTours() {
         // Afficher le Challenge
         document.getElementById('challengeSection').style.display = 'block';
         updateChallenge(data.challenge || {
-            total_moi: 0,
+            total_damien: 0,
             total_opa: 0,
             leader: 'Égalité',
-            difference: 0
+            difference: 0,
+            world_tour_damien: { km: 0, pct: 0, target: 40075 },
+            world_tour_opa: { km: 0, pct: 0, target: 40075 }
         });
         
         // Toujours afficher l'historique (même vide)
@@ -78,8 +80,8 @@ async function loadTours() {
         if (data.tours && data.tours.length > 0) {
             displayTours(data.tours);
         } else {
-            const toursList = document.getElementById('toursList');
-            toursList.innerHTML = '<p style="color: rgba(255,255,255,0.8); text-align: center; padding: 20px; font-weight: 600;">Keine Touren vorhanden</p>';
+            document.getElementById('toursListDamien').innerHTML = '<p class="empty-history">Keine Touren</p>';
+            document.getElementById('toursListOpa').innerHTML = '<p class="empty-history">Keine Touren</p>';
         }
     } catch (error) {
         console.error('Erreur lors du chargement des tours:', error);
@@ -107,14 +109,16 @@ async function loadTours() {
         
         document.getElementById('challengeSection').style.display = 'block';
         updateChallenge({
-            total_moi: 0,
+            total_damien: 0,
             total_opa: 0,
             leader: 'Égalité',
-            difference: 0
+            difference: 0,
+            world_tour_damien: { km: 0, pct: 0, target: 40075 },
+            world_tour_opa: { km: 0, pct: 0, target: 40075 }
         });
         
-        const toursList = document.getElementById('toursList');
-        toursList.innerHTML = '<p style="color: rgba(255,255,255,0.8); text-align: center; padding: 20px; font-weight: 600;">Keine Touren vorhanden</p>';
+        document.getElementById('toursListDamien').innerHTML = '<p class="empty-history">Keine Touren</p>';
+        document.getElementById('toursListOpa').innerHTML = '<p class="empty-history">Keine Touren</p>';
         
         // Ne pas afficher de toast d'erreur pour ne pas perturber l'utilisateur
         // Le formulaire reste fonctionnel même si le chargement échoue
@@ -130,19 +134,32 @@ function updateStats(stats) {
     document.getElementById('statTotal').textContent = formatDistance(stats.total_global);
 }
 
-// Mettre à jour le Challenge Moi vs Opa
+// Mettre à jour le Challenge Damien vs Opa
 function updateChallenge(challenge) {
-    document.getElementById('totalMoi').textContent = formatDistance(challenge.total_moi || 0);
+    document.getElementById('totalDamien').textContent = formatDistance(challenge.total_damien || 0);
     document.getElementById('totalOpa').textContent = formatDistance(challenge.total_opa || 0);
     
     let message = '';
     if (challenge.leader === 'Égalité') {
-        message = 'Égalité ! Moi et Opa ont parcouru la même distance.';
+        message = 'Égalité ! Damien et Opa ont parcouru la même distance.';
     } else {
         const diff = formatDistance(challenge.difference || 0);
         message = `${challenge.leader} est en tête avec ${diff} d'avance !`;
     }
     document.getElementById('challengeMessage').textContent = message;
+    
+    // Tour du Monde individuel (40 075 km chacun)
+    const wtDamien = challenge.world_tour_damien || { km: 0, pct: 0 };
+    const wtOpa = challenge.world_tour_opa || { km: 0, pct: 0 };
+    
+    document.getElementById('worldTourDamienKm').textContent = formatDistance(wtDamien.km || 0);
+    document.getElementById('worldTourOpaKm').textContent = formatDistance(wtOpa.km || 0);
+    
+    document.getElementById('worldTourDamienFill').style.width = `${Math.min(100, wtDamien.pct || 0)}%`;
+    document.getElementById('worldTourOpaFill').style.width = `${Math.min(100, wtOpa.pct || 0)}%`;
+    
+    document.getElementById('worldTourDamienPct').textContent = formatPercent(wtDamien.pct || 0);
+    document.getElementById('worldTourOpaPct').textContent = formatPercent(wtOpa.pct || 0);
 }
 
 // Mettre à jour la progression
@@ -167,25 +184,36 @@ function updateProgression(progression) {
     document.getElementById('emailLink').href = `mailto:cogi003@gmail.com?subject=${emailSubject}&body=${emailBody}`;
 }
 
-// Afficher les tours
+// Afficher les tours en 2 colonnes (Damien | Opa)
 function displayTours(tours) {
-    const toursList = document.getElementById('toursList');
-    toursList.innerHTML = '';
+    const toursListDamien = document.getElementById('toursListDamien');
+    const toursListOpa = document.getElementById('toursListOpa');
+    toursListDamien.innerHTML = '';
+    toursListOpa.innerHTML = '';
     
     if (tours.length === 0) {
-        toursList.innerHTML = '<p style="color: rgba(255,255,255,0.8); text-align: center; padding: 20px;">Keine Touren vorhanden</p>';
+        toursListDamien.innerHTML = '<p class="empty-history">Keine Touren</p>';
+        toursListOpa.innerHTML = '<p class="empty-history">Keine Touren</p>';
         return;
     }
     
-    // Les tours sont déjà triés par ordre décroissant d'index
-    tours.forEach((tour, displayIndex) => {
+    const toursDamien = tours.filter(t => (t.Utilisateur || 'Opa').trim() === 'Damien');
+    const toursOpa = tours.filter(t => (t.Utilisateur || 'Opa').trim() !== 'Damien');
+    
+    [toursDamien, toursOpa].forEach((tourList, idx) => {
+        const targetList = idx === 0 ? toursListDamien : toursListOpa;
+        if (tourList.length === 0) {
+            targetList.innerHTML = '<p class="empty-history">Keine Touren</p>';
+            return;
+        }
+        tourList.forEach((tour, displayIndex) => {
         const tourItem = document.createElement('div');
         tourItem.className = 'tour-item';
         
         // Utiliser l'index réel du DataFrame stocké dans _index
         const realIndex = tour._index !== undefined ? tour._index : displayIndex;
         
-        tourItem.innerHTML = `
+            tourItem.innerHTML = `
             <div class="tour-field">
                 <strong>Datum</strong>
                 <span>${tour.Date || ''}</span>
@@ -199,20 +227,8 @@ function displayTours(tours) {
                 <span>${tour.Ziel || ''}</span>
             </div>
             <div class="tour-field">
-                <strong>Wetter</strong>
-                <span>${tour.Wetter || ''}</span>
-            </div>
-            <div class="tour-field">
                 <strong>Km</strong>
                 <span>${formatDistance(tour.Km || 0)}</span>
-            </div>
-            <div class="tour-field">
-                <strong>Qui</strong>
-                <span>${tour.Utilisateur || 'Opa'}</span>
-            </div>
-            <div class="tour-field">
-                <strong>Bemerkungen</strong>
-                <span>${(tour.Bemerkungen && tour.Bemerkungen !== 'NaN' && tour.Bemerkungen !== 'nan') ? tour.Bemerkungen : ''}</span>
             </div>
             ${tour.Etape && tour.Etape !== 'NaN' && tour.Etape !== 'nan' && tour.Etape !== 'N/A' ? `
             <div class="tour-field">
@@ -223,7 +239,8 @@ function displayTours(tours) {
             <button class="btn-delete" onclick="deleteTour(${realIndex})" title="Löschen">❌</button>
         `;
         
-        toursList.appendChild(tourItem);
+            targetList.appendChild(tourItem);
+        });
     });
 }
 
@@ -319,9 +336,14 @@ async function deleteTour(index) {
     }
 }
 
-// Formater la distance
+// Formater la distance (virgule belge)
 function formatDistance(km) {
-    return `${km.toFixed(1).replace('.', ',')} km`;
+    return `${Number(km).toFixed(1).replace('.', ',')} km`;
+}
+
+// Formater le pourcentage (virgule belge)
+function formatPercent(pct) {
+    return `${Number(pct).toFixed(1).replace('.', ',')} %`;
 }
 
 // Afficher une notification toast
