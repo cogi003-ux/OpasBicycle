@@ -279,14 +279,14 @@ body {
     gap: 30px;
 }
 
-.stats-user-block {
+.stats-column {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 15px;
     padding: 20px;
     border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.stats-user-title {
+.stats-column h3 {
     color: #ffffff;
     font-size: 1.3rem;
     font-weight: 700;
