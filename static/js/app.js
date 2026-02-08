@@ -18,6 +18,9 @@ async function initializeApp() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('date').value = today;
     
+    // Calendrier dynamique pour "Heute"
+    updateStatCalendarToday();
+    
     // Charger les données
     await loadTours();
     
@@ -56,6 +59,7 @@ async function loadTours() {
         // Toujours afficher les stats et la progression
         document.getElementById('statsSection').style.display = 'block';
         document.getElementById('progressionSection').style.display = 'block';
+        updateStatCalendarToday();
         
         const emptyStats = { total_global: 0, total_aujourdhui: 0, total_semaine: 0, total_mois: 0, total_annee: 0 };
         const emptyProg = { ville_actuelle: '🏠 Kettenis', prochaine_ville: '🇧🇪 Liège', km_restants: 30, progression: 0, distance_kettenis: 30 };
@@ -121,6 +125,31 @@ async function loadTours() {
         // Ne pas afficher de toast d'erreur pour ne pas perturber l'utilisateur
         // Le formulaire reste fonctionnel même si le chargement échoue
     }
+}
+
+// Calendrier dynamique : jour et mois actuels dans les stats "Heute"
+function updateStatCalendarToday() {
+    const d = new Date();
+    const day = d.getDate();
+    const monthKey = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][d.getMonth()];
+    ['Oswald','Alexandre','Damien'].forEach(name => {
+        const dayEl = document.getElementById(`statCalDay${name}`);
+        const monthEl = document.getElementById(`statCalMonth${name}`);
+        if (dayEl) dayEl.textContent = day;
+        if (monthEl) monthEl.textContent = monthKey;
+    });
+}
+
+// Parser la date du tour (dd/mm/yyyy) pour l'icône calendrier
+function parseTourDate(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return { day: '?', month: '?' };
+    const parts = dateStr.trim().split(/[\/\-\.]/);
+    if (parts.length < 2) return { day: '?', month: '?' };
+    const day = parseInt(parts[0], 10) || '?';
+    const monthNum = parseInt(parts[1], 10);
+    const months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    const month = (monthNum >= 1 && monthNum <= 12) ? months[monthNum - 1] : '?';
+    return { day, month };
 }
 
 // Statistiken pro Nutzer aktualisieren
@@ -261,38 +290,58 @@ function displayTours(tours) {
                    </div>`
                 : '';
             const userKey = user.toLowerCase();
+            const parsed = parseTourDate(tour.Date);
+            const photoThumbHtml = hasPhotos
+                ? `<div class="tour-photo-compact"><img src="${escapeHtml(firstPhotoUrl)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><span class="tour-photo-icon-fallback" style="display:none">📸</span></div>`
+                : '';
             tourItem.innerHTML = `
+            <div class="tour-mobile-row">
+                <div class="tour-mobile-calendar">
+                    <div class="tour-date-icon"><span class="tour-cal-day">${parsed.day}</span><span class="tour-cal-month">${parsed.month}</span></div>
+                </div>
+                <div class="tour-mobile-center">
+                    <span class="tour-mobile-km">${formatDistance(tour.Km || 0)}</span>
+                    ${photoThumbHtml}
+                </div>
+                <button class="btn-details" type="button">Détails</button>
+            </div>
             ${photoPreviewHtml}
-            <div class="tour-field">
+            <div class="tour-field tour-desktop-only">
                 <strong>Datum</strong>
-                <span>${tour.Date || ''}</span>
+                <div class="tour-datum-row">
+                    <div class="tour-date-icon" title="${escapeHtml(tour.Date || '')}">
+                        <span class="tour-cal-day">${parsed.day}</span>
+                        <span class="tour-cal-month">${parsed.month}</span>
+                    </div>
+                    <span>${tour.Date || ''}</span>
+                </div>
                 <span class="tour-user-pill tour-user-pill-${userKey}" title="${user}">${ { Oswald: '🌳', Alexandre: '🌴', Damien: '⚡' }[user] } ${user}</span>
                 ${tour.Wetter && String(tour.Wetter).trim() && tour.Wetter !== 'N/A' ? `
                 <span class="tour-wetter">🌤️ ${escapeHtml(String(tour.Wetter).trim())}</span>
                 ` : ''}
             </div>
-            <div class="tour-field">
+            <div class="tour-field tour-desktop-only">
                 <strong>Start</strong>
                 <span>${tour.Start || ''}</span>
             </div>
-            <div class="tour-field">
+            <div class="tour-field tour-desktop-only">
                 <strong>Ziel</strong>
                 <span>${tour.Ziel || ''}</span>
             </div>
-            <div class="tour-field">
+            <div class="tour-field tour-desktop-only">
                 <strong>Km</strong>
                 <span>${formatDistance(tour.Km || 0)}</span>
             </div>
             ${tour.Etape && tour.Etape !== 'NaN' && tour.Etape !== 'nan' && tour.Etape !== 'N/A' ? `
-            <div class="tour-field">
+            <div class="tour-field tour-desktop-only">
                 <strong>Etape</strong>
                 <span>${tour.Etape}</span>
             </div>
             ` : ''}
             ${tour.Bemerkungen && String(tour.Bemerkungen).trim() ? `
-            <div class="tour-remark">${escapeHtml(String(tour.Bemerkungen).trim())}</div>
+            <div class="tour-remark tour-desktop-only">${escapeHtml(String(tour.Bemerkungen).trim())}</div>
             ` : ''}
-            <button class="btn-delete" onclick="event.stopPropagation(); deleteTour(${realIndex})" title="Löschen">❌</button>
+            <button class="btn-delete tour-desktop-only" onclick="event.stopPropagation(); deleteTour(${realIndex})" title="Löschen">❌</button>
         `;
             
             tourItem.setAttribute('data-tour', tourDataAttr);

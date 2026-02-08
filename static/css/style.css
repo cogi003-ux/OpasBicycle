@@ -342,6 +342,23 @@ body {
     font-size: 2.5rem;
     margin-bottom: 10px;
 }
+.stat-calendar-dynamic {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.stat-calendar-dynamic .cal-day { line-height: 1; font-size: 1.4rem; }
+.stat-calendar-dynamic .cal-month { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; }
 
 .stat-value {
     font-size: 2rem;
@@ -916,6 +933,29 @@ body {
     font-weight: 600;
 }
 
+.tour-mobile-row { display: none; }
+
+.tour-datum-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.tour-date-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    flex-shrink: 0;
+}
+.tour-date-icon .tour-cal-day { font-size: 1rem; font-weight: 800; line-height: 1; color: white; }
+.tour-date-icon .tour-cal-month { font-size: 0.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; color: rgba(255,255,255,0.9); }
+
 .tour-remark {
     grid-column: 1 / -1;
     font-size: 0.8rem;
@@ -1199,7 +1239,7 @@ body {
     border-left: 4px solid #f44336;
 }
 
-/* Responsive */
+/* Responsive - Smartphone */
 @media (max-width: 768px) {
     body {
         padding: 10px;
@@ -1214,9 +1254,41 @@ body {
         grid-template-columns: 1fr;
     }
 
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+    /* Stats : carousel horizontal ou grille 2 colonnes compacte */
+    .stats-grid-three {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 16px;
+        padding-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
+    }
+    .stats-grid-three .glass-card {
+        flex: 0 0 85%;
+        min-width: 260px;
+        scroll-snap-align: start;
+    }
+    .stats-block h2 { font-size: 1.15rem; }
+    .stat-icon { font-size: 1.8rem; margin-bottom: 6px; }
+    .stat-calendar-dynamic { width: 40px; height: 40px; font-size: 1rem; }
+    .stat-calendar-dynamic .cal-day { font-size: 1.1rem; }
+    .stat-calendar-dynamic .cal-month { font-size: 0.5rem; }
+    .stat-value { font-size: 1.5rem; }
+    .stat-label { font-size: 0.8rem; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+    /* Barre Master : sticky en haut au scroll */
+    .challenge-card .challenge-master-bar-wrap {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(15, 23, 42, 0.97);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        margin: 0 -20px 20px -20px;
+        padding: 14px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     }
 
     .progression-two-columns,
@@ -1238,15 +1310,75 @@ body {
         grid-template-columns: 1fr;
     }
 
+    /* Historique : lignes compactes sur mobile */
     .tour-item {
-        grid-template-columns: 1fr;
-        gap: 10px;
+        display: flex;
+        flex-direction: column;
+        padding: 10px 14px;
+        gap: 0;
     }
-
-    .btn-delete {
+    .tour-mobile-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
         width: 100%;
-        margin-top: 10px;
     }
+    .tour-mobile-calendar .tour-date-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .tour-mobile-calendar .tour-cal-day { font-size: 0.9rem; }
+    .tour-mobile-calendar .tour-cal-month { font-size: 0.45rem; }
+    .tour-mobile-center {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+    .tour-mobile-km { font-weight: 700; font-size: 0.95rem; white-space: nowrap; }
+    .tour-photo-compact {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+    .tour-photo-compact img { width: 100%; height: 100%; object-fit: cover; }
+    .tour-photo-compact .tour-photo-icon-fallback {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        width: 100%;
+        height: 100%;
+    }
+    .btn-details {
+        flex-shrink: 0;
+        min-height: 44px;
+        padding: 0 16px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 10px;
+        color: white;
+        cursor: pointer;
+    }
+    .tour-mobile-row { display: flex !important; }
+    .tour-desktop-only { display: none !important; }
+    .tour-photo-preview { display: none !important; }
+    .btn-delete { display: none !important; }
+    .tours-list { gap: 8px; }
+
+    /* Boutons tactiles min 44px */
+    .btn-primary, .btn-secondary, .btn-modal {
+        min-height: 44px;
+        padding: 12px 20px;
+    }
+    .btn-delete { min-height: 44px; }
 
     .toast {
         right: 10px;
