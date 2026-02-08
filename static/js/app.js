@@ -355,6 +355,76 @@ function openTourModal(tour) {
         const body = encodeURIComponent(`${startPlace} → ${zielPlace}\n${formatDistance(tour.Km || 0)}\nWetter: ${tour.Wetter || '—'}`);
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
     };
+
+    // Afficher les photos du tour
+    const photosWrap = document.getElementById('modalPhotosWrap');
+    const photosGrid = document.getElementById('modalPhotosGrid');
+    const photos = tour.photos && Array.isArray(tour.photos) ? tour.photos : [];
+    if (photos.length > 0) {
+        photosWrap.style.display = 'block';
+        photosGrid.innerHTML = photos.map(url => `
+            <a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="modal-photo-item">
+                <img src="${escapeHtml(url)}" alt="Photo du tour">
+            </a>
+        `).join('');
+    } else {
+        photosWrap.style.display = 'none';
+        photosGrid.innerHTML = '';
+    }
+
+    // Bouton Ajouter des photos (Supabase uniquement)
+    const photoBtn = document.getElementById('modalPhotoBtn');
+    const photoInput = document.getElementById('photoFileInput');
+    if (photoBtn && photoInput) {
+        photoBtn.onclick = () => photoInput.click();
+        photoInput.onchange = (e) => {
+            const file = e.target.files?.[0];
+            if (!file || !tour._index) return;
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Image trop lourde (max 5 Mo)', 'error');
+                photoInput.value = '';
+                return;
+            }
+            uploadTourPhoto(tour._index, file);
+            photoInput.value = '';
+        };
+    }
+}
+
+async function uploadTourPhoto(tourId, file) {
+    const photoBtn = document.getElementById('modalPhotoBtn');
+    if (photoBtn) {
+        photoBtn.disabled = true;
+        photoBtn.textContent = '⏳ Envoi...';
+    }
+    try {
+        const formData = new FormData();
+        formData.append('photo', file);
+        const response = await fetch(`${API_BASE}/api/tours/${tourId}/photos`, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        if (data.success) {
+            showToast('Photo ajoutée ! 📸', 'success');
+            await loadTours();
+            const updated = toursData.tours.find(t => t._index === tourId);
+            if (updated && currentModalTour && currentModalTour._index === tourId) {
+                currentModalTour.photos = updated.photos || [];
+                openTourModal(currentModalTour);
+            }
+        } else {
+            showToast(data.error || 'Erreur lors de l\'envoi', 'error');
+        }
+    } catch (err) {
+        console.error('Erreur upload photo:', err);
+        showToast('Erreur lors de l\'envoi de la photo', 'error');
+    } finally {
+        if (photoBtn) {
+            photoBtn.disabled = false;
+            photoBtn.textContent = '📸 Ajouter des photos';
+        }
+    }
 }
 
 function closeTourModal() {

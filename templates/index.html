@@ -299,14 +299,23 @@
                     <span class="modal-label">Bemerkungen</span>
                     <span id="modalBemerkungen">—</span>
                 </div>
+                <div class="modal-photos-wrap" id="modalPhotosWrap" style="display: none;">
+                    <span class="modal-label">Photos</span>
+                    <div class="modal-photos-grid" id="modalPhotosGrid"></div>
+                </div>
             </div>
             <div class="modal-bike-animation">
                 <div class="bike-roll">🚲</div>
             </div>
             <footer class="modal-actions">
+                <input type="file" id="photoFileInput" accept="image/*" style="display: none;">
                 <button class="btn-modal" onclick="printTourDetail()">🖨️ Imprimer cette sortie</button>
                 <button class="btn-modal" id="modalShareBtn">📧 Partager</button>
-                <button class="btn-modal btn-modal-disabled">📸 Ajouter des photos</button>
+                {% if use_supabase|default(false) %}
+                <button class="btn-modal" id="modalPhotoBtn" type="button">📸 Ajouter des photos</button>
+                {% else %}
+                <button class="btn-modal btn-modal-disabled" disabled title="Photos nur mit Supabase">📸 Ajouter des photos</button>
+                {% endif %}
             </footer>
         </div>
     </div>

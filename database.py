@@ -3,9 +3,11 @@ Module pour gérer la connexion à Supabase
 """
 from supabase import create_client, Client
 import os
-from typing import List, Dict, Optional
+import uuid
+from typing import List, Dict, Optional, Tuple
 
 TABLE_NAME = 'rides'
+PHOTOS_BUCKET = 'tour-photos'
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 def log_debug(message: str):
@@ -304,3 +306,43 @@ def delete_tour(tour_id: int) -> bool:
     except Exception as e:
         print(f"Erreur lors de la suppression du tour: {e}")
         return False
+
+
+def upload_photo_to_tour(tour_id: int, file_content: bytes, filename: str, content_type: str) -> Tuple[bool, str]:
+    """
+    Envoie une photo vers le bucket tour-photos et enregistre l'URL dans la colonne photos du tour.
+    Retourne (success: bool, url_ou_erreur: str)
+    """
+    client = get_supabase_client()
+    if not client:
+        return False, "Supabase non configuré"
+
+    # Extension et nom unique pour éviter les collisions
+    ext = os.path.splitext(filename)[1].lower() or '.jpg'
+    if ext not in ('.jpg', '.jpeg', '.png', '.gif', '.webp'):
+        ext = '.jpg'
+    storage_path = f"{tour_id}/{uuid.uuid4().hex}{ext}"
+
+    try:
+        # Upload vers Supabase Storage
+        client.storage.from_(PHOTOS_BUCKET).upload(
+            storage_path,
+            file_content,
+            file_options={"content-type": content_type or "image/jpeg"}
+        )
+        # Récupérer l'URL publique
+        public_url = client.storage.from_(PHOTOS_BUCKET).get_public_url(storage_path)
+
+        # Récupérer les photos actuelles, ajouter la nouvelle URL
+        response = client.table(TABLE_NAME).select('photos').eq('id', tour_id).single().execute()
+        photos = response.data.get('photos') if response.data else []
+        if not isinstance(photos, list):
+            photos = photos if photos else []
+        photos.append(public_url)
+
+        # Mettre à jour la colonne photos
+        client.table(TABLE_NAME).update({'photos': photos}).eq('id', tour_id).execute()
+        return True, public_url
+    except Exception as e:
+        log_error(f"Erreur lors de l'upload photo pour tour {tour_id}: {e}")
+        return False, str(e)

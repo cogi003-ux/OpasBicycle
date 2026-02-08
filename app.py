@@ -4,7 +4,7 @@ import pandas as pd
 import requests
 import os
 import urllib.parse
-from database import get_all_tours, add_tour as add_tour_db, delete_tour as delete_tour_db
+from database import get_all_tours, add_tour as add_tour_db, delete_tour as delete_tour_db, upload_photo_to_tour as upload_photo_db
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -90,7 +90,7 @@ def charger_donnees():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', use_supabase=USE_SUPABASE)
 
 @app.route('/api/tours', methods=['GET'])
 def get_tours():
@@ -523,6 +523,9 @@ def get_tours():
         tours_data = get_all_tours()
         tours = []
         for tour in tours_data:
+            photos = tour.get('photos')
+            if not isinstance(photos, list):
+                photos = photos if photos else []
             tour_dict = {
                 'Date': tour.get('date', ''),
                 'Start': tour.get('start', ''),
@@ -532,7 +535,8 @@ def get_tours():
                 'Km': float(tour.get('km', 0)),
                 'Bemerkungen': tour.get('bemerkungen', '') if tour.get('bemerkungen') else '',
                 'Utilisateur': _normalize_utilisateur(tour.get('utilisateur', 'Opa')),
-                '_index': tour.get('id')  # Utiliser l'ID Supabase comme index
+                '_index': tour.get('id'),  # Utiliser l'ID Supabase comme index
+                'photos': photos
             }
             tours.append(tour_dict)
     else:
@@ -549,6 +553,7 @@ def get_tours():
                 tour_dict['Utilisateur'] = 'Opa'
             else:
                 tour_dict['Utilisateur'] = _normalize_utilisateur(tour_dict['Utilisateur'])
+            tour_dict['photos'] = []  # Pas de photos en mode CSV
             tours.append(tour_dict)
     
     return jsonify({
@@ -649,6 +654,42 @@ def add_tour():
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': f'Erreur serveur: {str(e)}'}), 500
+
+MAX_PHOTO_SIZE = 5 * 1024 * 1024  # 5 Mo
+
+@app.route('/api/tours/<int:tour_id>/photos', methods=['POST'])
+def add_photo(tour_id):
+    """Envoie une photo vers Supabase et la lie au tour (Supabase uniquement)"""
+    if not USE_SUPABASE:
+        return jsonify({'success': False, 'error': 'Photos non disponibles en mode CSV'}), 400
+
+    if 'photo' not in request.files and 'file' not in request.files:
+        return jsonify({'success': False, 'error': 'Aucun fichier reçu'}), 400
+
+    file = request.files.get('photo') or request.files.get('file')
+    if not file or file.filename == '':
+        return jsonify({'success': False, 'error': 'Fichier vide'}), 400
+
+    # Vérifier la taille (max 5 Mo) pour éviter de bloquer l'app
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > MAX_PHOTO_SIZE:
+        return jsonify({
+            'success': False,
+            'error': f'Image trop lourde (max 5 Mo). Taille reçue : {size // (1024 * 1024)} Mo'
+        }), 400
+
+    try:
+        content_type = file.content_type or 'image/jpeg'
+        success, result = upload_photo_db(tour_id, file.read(), file.filename or 'photo.jpg', content_type)
+        if success:
+            return jsonify({'success': True, 'url': result})
+        return jsonify({'success': False, 'error': result}), 500
+    except Exception as e:
+        print(f"[ERROR] Erreur upload photo: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 
 @app.route('/api/tours/<int:tour_id>', methods=['DELETE'])
 def delete_tour(tour_id):
