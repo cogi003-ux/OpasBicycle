@@ -258,8 +258,17 @@ function displayTours(tours) {
             tourItem.className = 'tour-item tour-item-clickable';
             const realIndex = tour._index !== undefined ? tour._index : displayIndex;
             const tourDataAttr = JSON.stringify(tour).replace(/"/g, '&quot;');
-            
+            const photos = tour.photos && Array.isArray(tour.photos) ? tour.photos : [];
+            const hasPhotos = photos.length > 0;
+            const firstPhotoUrl = hasPhotos ? photos[0] : '';
+            const photoPreviewHtml = hasPhotos
+                ? `<div class="tour-photo-preview" title="Fotos anzeigen">
+                    <img src="${escapeHtml(firstPhotoUrl)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                    <span class="tour-photo-icon-fallback" style="display:none">📸</span>
+                   </div>`
+                : '';
             tourItem.innerHTML = `
+            ${photoPreviewHtml}
             <div class="tour-field">
                 <strong>Datum</strong>
                 <span>${tour.Date || ''}</span>
