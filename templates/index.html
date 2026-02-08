@@ -270,6 +270,47 @@
     <!-- Notification Toast -->
     <div id="toast" class="toast"></div>
 
+    <!-- Modale Vue Détaillée Tour -->
+    <div id="tourModal" class="modal-overlay" aria-hidden="true" onclick="if(event.target===this)closeTourModal()">
+        <div class="modal-glass" role="dialog" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeTourModal()" aria-label="Schließen">×</button>
+            <header class="modal-header">
+                <h2 id="modalDate">—</h2>
+                <p class="modal-route" id="modalRoute">— ➝ —</p>
+            </header>
+            <div class="modal-body">
+                <div class="modal-detail">
+                    <span class="modal-label">Entfernung</span>
+                    <span id="modalDistance">—</span>
+                </div>
+                <div class="modal-detail">
+                    <span class="modal-label">Zeit</span>
+                    <span id="modalTime">—</span>
+                </div>
+                <div class="modal-detail">
+                    <span class="modal-label">Ø Geschwindigkeit</span>
+                    <span id="modalSpeed">—</span>
+                </div>
+                <div class="modal-detail modal-wetter">
+                    <span class="modal-label">Wetter</span>
+                    <span id="modalWetter">—</span>
+                </div>
+                <div class="modal-detail" id="modalBemerkungenWrap" style="display: none;">
+                    <span class="modal-label">Bemerkungen</span>
+                    <span id="modalBemerkungen">—</span>
+                </div>
+            </div>
+            <div class="modal-bike-animation">
+                <div class="bike-roll">🚲</div>
+            </div>
+            <footer class="modal-actions">
+                <button class="btn-modal" onclick="printTourDetail()">🖨️ Imprimer cette sortie</button>
+                <button class="btn-modal" id="modalShareBtn">📧 Partager</button>
+                <button class="btn-modal btn-modal-disabled">📸 Ajouter des photos</button>
+            </footer>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

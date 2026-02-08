@@ -23,6 +23,13 @@ async function initializeApp() {
     
     // Écouter le formulaire
     document.getElementById('tourForm').addEventListener('submit', handleFormSubmit);
+    
+    // Fermer la modale avec Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.getElementById('tourModal').classList.contains('modal-open')) {
+            closeTourModal();
+        }
+    });
 }
 
 // Charger les tours depuis l'API
@@ -247,16 +254,18 @@ function displayTours(tours) {
             return;
         }
         tourList.forEach((tour, displayIndex) => {
-        const tourItem = document.createElement('div');
-        tourItem.className = 'tour-item';
-        
-        // Utiliser l'index réel du DataFrame stocké dans _index
-        const realIndex = tour._index !== undefined ? tour._index : displayIndex;
-        
+            const tourItem = document.createElement('div');
+            tourItem.className = 'tour-item tour-item-clickable';
+            const realIndex = tour._index !== undefined ? tour._index : displayIndex;
+            const tourDataAttr = JSON.stringify(tour).replace(/"/g, '&quot;');
+            
             tourItem.innerHTML = `
             <div class="tour-field">
                 <strong>Datum</strong>
                 <span>${tour.Date || ''}</span>
+                ${tour.Wetter && String(tour.Wetter).trim() && tour.Wetter !== 'N/A' ? `
+                <span class="tour-wetter">🌤️ ${escapeHtml(String(tour.Wetter).trim())}</span>
+                ` : ''}
             </div>
             <div class="tour-field">
                 <strong>Start</strong>
@@ -279,12 +288,94 @@ function displayTours(tours) {
             ${tour.Bemerkungen && String(tour.Bemerkungen).trim() ? `
             <div class="tour-remark">${escapeHtml(String(tour.Bemerkungen).trim())}</div>
             ` : ''}
-            <button class="btn-delete" onclick="deleteTour(${realIndex})" title="Löschen">❌</button>
+            <button class="btn-delete" onclick="event.stopPropagation(); deleteTour(${realIndex})" title="Löschen">❌</button>
         `;
-        
+            
+            tourItem.setAttribute('data-tour', tourDataAttr);
+            tourItem.addEventListener('click', (e) => {
+                if (!e.target.closest('.btn-delete')) {
+                    const data = tourItem.getAttribute('data-tour').replace(/&quot;/g, '"');
+                    openTourModal(JSON.parse(data));
+                }
+            });
             targetList.appendChild(tourItem);
         });
     });
+}
+
+let currentModalTour = null;
+
+function openTourModal(tour) {
+    currentModalTour = tour;
+    const modal = document.getElementById('tourModal');
+    modal.classList.add('modal-open');
+    modal.setAttribute('aria-hidden', 'false');
+    
+    const startPlace = (tour.Start || '').replace(/\s*\(\d{1,2}:\d{2}\)\s*$/, '').trim();
+    const zielPlace = (tour.Ziel || '').replace(/\s*\(\d{1,2}:\d{2}\)\s*$/, '').trim();
+    const startTime = (tour.Start || '').match(/\((\d{1,2}:\d{2})\)/)?.[1] || '';
+    const zielTime = (tour.Ziel || '').match(/\((\d{1,2}:\d{2})\)/)?.[1] || '';
+    
+    document.getElementById('modalDate').textContent = tour.Date || '—';
+    document.getElementById('modalRoute').textContent = `${startPlace || '—'} ➝ ${zielPlace || '—'}`;
+    document.getElementById('modalDistance').textContent = formatDistance(tour.Km || 0);
+    
+    let timeStr = '—';
+    let speedStr = '—';
+    if (startTime && zielTime) {
+        const [sh, sm] = startTime.split(':').map(Number);
+        const [zh, zm] = zielTime.split(':').map(Number);
+        const mins = (zh * 60 + zm) - (sh * 60 + sm);
+        if (mins > 0) {
+            const h = Math.floor(mins / 60);
+            const m = mins % 60;
+            timeStr = h ? `${h}h ${m}min` : `${m} min`;
+            const km = Number(tour.Km) || 0;
+            if (km > 0) {
+                const speed = (km / (mins / 60)).toFixed(1).replace('.', ',');
+                speedStr = `${speed} km/h`;
+            }
+        }
+    }
+    document.getElementById('modalTime').textContent = timeStr;
+    document.getElementById('modalSpeed').textContent = speedStr;
+    document.getElementById('modalWetter').textContent = tour.Wetter && tour.Wetter !== 'N/A' ? tour.Wetter : '—';
+    
+    const bemerkWrap = document.getElementById('modalBemerkungenWrap');
+    if (tour.Bemerkungen && String(tour.Bemerkungen).trim()) {
+        bemerkWrap.style.display = 'block';
+        document.getElementById('modalBemerkungen').textContent = tour.Bemerkungen.trim();
+    } else {
+        bemerkWrap.style.display = 'none';
+    }
+    
+    const shareBtn = document.getElementById('modalShareBtn');
+    shareBtn.onclick = () => {
+        const subject = encodeURIComponent(`Tour ${tour.Date || ''}`);
+        const body = encodeURIComponent(`${startPlace} → ${zielPlace}\n${formatDistance(tour.Km || 0)}\nWetter: ${tour.Wetter || '—'}`);
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    };
+}
+
+function closeTourModal() {
+    document.getElementById('tourModal').classList.remove('modal-open');
+    document.getElementById('tourModal').setAttribute('aria-hidden', 'true');
+    currentModalTour = null;
+}
+
+function printTourDetail() {
+    if (!currentModalTour) return;
+    const printContent = document.querySelector('.modal-glass').innerHTML;
+    const w = window.open('', '_blank');
+    w.document.write(`
+        <html><head><title>Tour ${currentModalTour.Date || ''}</title>
+        <style>body{font-family:sans-serif;padding:20px;background:#0f172a;color:#fff;}
+        .modal-bike-animation,.modal-close,.btn-modal{display:none;}</style></head>
+        <body>${printContent}</body></html>
+    `);
+    w.document.close();
+    w.print();
+    w.close();
 }
 
 // Gérer la soumission du formulaire
