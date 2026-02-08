@@ -18,9 +18,6 @@ async function initializeApp() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('date').value = today;
     
-    // Calendrier dynamique pour "Heute"
-    updateStatCalendarToday();
-    
     // Charger les données
     await loadTours();
     
@@ -33,6 +30,76 @@ async function initializeApp() {
             closeTourModal();
         }
     });
+
+    // Notification Live : vérification toutes les 60 s (nouveau code ou nouvelles données)
+    startLiveNotificationCheck();
+    initLiveNotificationButton();
+}
+
+let lastKnownVersion = null;
+let lastKnownToursCount = 0;
+let lastKnownFirstTourId = null;
+
+async function startLiveNotificationCheck() {
+    try {
+        const verRes = await fetch(`${API_BASE}/api/version`);
+        if (verRes.ok) {
+            const v = await verRes.json();
+            lastKnownVersion = v.version || null;
+        }
+    } catch (_) {}
+    if (toursData.tours && toursData.tours.length > 0) {
+        lastKnownToursCount = toursData.tours.length;
+        lastKnownFirstTourId = toursData.tours[0]._index;
+    }
+    setInterval(checkForUpdates, 60000);
+}
+
+function checkForUpdates() {
+    (async () => {
+        let hasNew = false;
+        try {
+            const verRes = await fetch(`${API_BASE}/api/version`);
+            if (verRes.ok) {
+                const v = await verRes.json();
+                const cur = v.version || null;
+                if (lastKnownVersion !== null && cur !== null && cur !== lastKnownVersion) {
+                    hasNew = true;
+                }
+            }
+        } catch (_) {}
+        if (!hasNew) {
+            try {
+                const res = await fetch(`${API_BASE}/api/tours`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const tours = data.tours || [];
+                    if (tours.length > lastKnownToursCount) hasNew = true;
+                    if (!hasNew && tours.length > 0 && tours[0]._index !== lastKnownFirstTourId) hasNew = true;
+                }
+            } catch (_) {}
+        }
+        if (hasNew) {
+            showLiveNotificationBanner();
+        }
+    })();
+}
+
+function showLiveNotificationBanner() {
+    const banner = document.getElementById('liveNotificationBanner');
+    if (banner) banner.style.display = 'flex';
+}
+
+function hideLiveNotificationBanner() {
+    const banner = document.getElementById('liveNotificationBanner');
+    if (banner) banner.style.display = 'none';
+}
+
+function initLiveNotificationButton() {
+    const btn = document.getElementById('liveNotificationBtn');
+    if (btn) {
+        btn.addEventListener('click', () => window.location.reload(true));
+    }
 }
 
 // Charger les tours depuis l'API
@@ -59,7 +126,6 @@ async function loadTours() {
         // Toujours afficher les stats et la progression
         document.getElementById('statsSection').style.display = 'block';
         document.getElementById('progressionSection').style.display = 'block';
-        updateStatCalendarToday();
         
         const emptyStats = { total_global: 0, total_aujourdhui: 0, total_semaine: 0, total_mois: 0, total_annee: 0 };
         const emptyProg = { ville_actuelle: '🏠 Kettenis', prochaine_ville: '🇧🇪 Liège', km_restants: 30, progression: 0, distance_kettenis: 30 };
@@ -125,19 +191,6 @@ async function loadTours() {
         // Ne pas afficher de toast d'erreur pour ne pas perturber l'utilisateur
         // Le formulaire reste fonctionnel même si le chargement échoue
     }
-}
-
-// Calendrier dynamique : jour et mois actuels dans les stats "Heute"
-function updateStatCalendarToday() {
-    const d = new Date();
-    const day = d.getDate();
-    const monthKey = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][d.getMonth()];
-    ['Oswald','Alexandre','Damien'].forEach(name => {
-        const dayEl = document.getElementById(`statCalDay${name}`);
-        const monthEl = document.getElementById(`statCalMonth${name}`);
-        if (dayEl) dayEl.textContent = day;
-        if (monthEl) monthEl.textContent = monthKey;
-    });
 }
 
 // Parser la date du tour (dd/mm/yyyy) pour l'icône calendrier

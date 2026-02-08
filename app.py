@@ -4,10 +4,12 @@ import pandas as pd
 import requests
 import os
 import urllib.parse
+import time
 from database import get_all_tours, add_tour as add_tour_db, delete_tour as delete_tour_db, upload_photo_to_tour as upload_photo_db
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
+APP_START_TIME = time.time()
 
 FICHIER_DATA = "journal_velo.csv"
 USE_SUPABASE = os.getenv('SUPABASE_URL') and os.getenv('SUPABASE_KEY')
@@ -95,6 +97,12 @@ def charger_donnees():
 @app.route('/')
 def index():
     return render_template('index.html', use_supabase=USE_SUPABASE)
+
+
+@app.route('/api/version', methods=['GET'])
+def api_version():
+    """Retourne une version qui change à chaque déploiement (nouveau processus)."""
+    return jsonify({'version': str(APP_START_TIME)})
 
 @app.route('/api/tours', methods=['GET'])
 def get_tours():
