@@ -13,14 +13,18 @@ FICHIER_DATA = "journal_velo.csv"
 USE_SUPABASE = os.getenv('SUPABASE_URL') and os.getenv('SUPABASE_KEY')
 TOUR_DU_MONDE_KM = 40075  # Circonférence de la Terre en km
 
+USERS = ['Oswald', 'Alexandre', 'Damien']
+
 def _normalize_utilisateur(val):
-    """Normalise l'utilisateur : Damien ou Opa. 'Moi' -> 'Damien' pour rétrocompatibilité."""
-    v = str(val or 'Opa').strip()
+    """Normalise l'utilisateur : Oswald, Alexandre ou Damien. Opa -> Oswald pour rétrocompatibilité."""
+    v = str(val or 'Oswald').strip()
     if v.upper() == 'MOI':
         return 'Damien'
-    if v == 'Damien' or v == 'Opa':
+    if v == 'Opa':  # Migration Opa -> Oswald
+        return 'Oswald'
+    if v in USERS:
         return v
-    return 'Opa'
+    return 'Oswald'
 
 def obtenir_meteo(ville):
     if not ville or ville.strip() == "":
@@ -69,7 +73,7 @@ def charger_donnees():
                 "Wetter": tour.get('wetter', ''),
                 "Km": float(tour.get('km', 0)),
                 "Bemerkungen": tour.get('bemerkungen', '') if tour.get('bemerkungen') else '',
-                "Utilisateur": _normalize_utilisateur(tour.get('utilisateur', 'Opa'))
+                "Utilisateur": _normalize_utilisateur(tour.get('utilisateur', 'Oswald'))
             })
         
         df = pd.DataFrame(data)
@@ -81,10 +85,10 @@ def charger_donnees():
         if os.path.exists(FICHIER_DATA):
             df = pd.read_csv(FICHIER_DATA)
             df['Date_dt'] = pd.to_datetime(df['Date'], format='%d/%m/%Y', errors='coerce')
-            # Ajouter colonne Utilisateur si absente (anciens fichiers) - défaut Opa
+            # Ajouter colonne Utilisateur si absente (anciens fichiers) - défaut Oswald
             if 'Utilisateur' not in df.columns:
-                df['Utilisateur'] = 'Opa'
-            df['Utilisateur'] = df['Utilisateur'].fillna('Opa').astype(str).apply(_normalize_utilisateur)
+                df['Utilisateur'] = 'Oswald'
+            df['Utilisateur'] = df['Utilisateur'].fillna('Oswald').astype(str).apply(_normalize_utilisateur)
             return df
         return pd.DataFrame(columns=["Date", "Start", "Etape", "Ziel", "Wetter", "Km", "Bemerkungen", "Utilisateur"])
 
@@ -120,30 +124,35 @@ def get_tours():
         return jsonify({
             'tours': [],
             'stats': empty_stats,
+            'stats_oswald': empty_stats.copy(),
+            'stats_alexandre': empty_stats.copy(),
             'stats_damien': empty_stats.copy(),
-            'stats_opa': empty_stats.copy(),
             'progression': empty_prog,
+            'progression_oswald': empty_prog.copy(),
+            'progression_alexandre': empty_prog.copy(),
             'progression_damien': empty_prog.copy(),
-            'progression_opa': empty_prog.copy(),
             'challenge': {
+                'total_oswald': 0,
+                'total_alexandre': 0,
                 'total_damien': 0,
-                'total_opa': 0,
                 'leader': 'Unentschieden',
                 'difference': 0,
-                'world_tour_damien': {'km': 0, 'pct': 0, 'target': TOUR_DU_MONDE_KM},
-                'world_tour_opa': {'km': 0, 'pct': 0, 'target': TOUR_DU_MONDE_KM}
+                'world_tour_oswald': {'km': 0, 'pct': 0, 'target': TOUR_DU_MONDE_KM},
+                'world_tour_alexandre': {'km': 0, 'pct': 0, 'target': TOUR_DU_MONDE_KM},
+                'world_tour_damien': {'km': 0, 'pct': 0, 'target': TOUR_DU_MONDE_KM}
             }
         })
     
     total_global = df['Km'].sum()
     
-    # Stats temporelles : somme filtrée par Utilisateur (Damien / Opa)
+    # Stats temporelles : somme filtrée par Utilisateur (Oswald, Alexandre, Damien)
     df_util = df.copy()
     if 'Utilisateur' not in df_util.columns:
-        df_util['Utilisateur'] = 'Opa'
-    df_util['Utilisateur'] = df_util['Utilisateur'].fillna('Opa').astype(str).apply(_normalize_utilisateur)
-    df_damien = df_util[df_util['Utilisateur'] == 'Damien']  # Uniquement les tours de Damien
-    df_opa = df_util[df_util['Utilisateur'] == 'Opa']        # Uniquement les tours d'Opa
+        df_util['Utilisateur'] = 'Oswald'
+    df_util['Utilisateur'] = df_util['Utilisateur'].fillna('Oswald').astype(str).apply(_normalize_utilisateur)
+    df_oswald = df_util[df_util['Utilisateur'] == 'Oswald']
+    df_alexandre = df_util[df_util['Utilisateur'] == 'Alexandre']
+    df_damien = df_util[df_util['Utilisateur'] == 'Damien']
     
     auj = pd.Timestamp.now().normalize()
     def _stats(df_sub):
@@ -162,8 +171,9 @@ def get_tours():
     total_semaine = stats_global['total_semaine']
     total_mois = stats_global['total_mois']
     total_annee = stats_global['total_annee']
+    stats_oswald = _stats(df_oswald)
+    stats_alexandre = _stats(df_alexandre)
     stats_damien = _stats(df_damien)
-    stats_opa = _stats(df_opa)
     
     # Étapes basées sur distances routières réelles depuis Kettenis (tous les 30 km jusqu'à 6000 km, puis tous les 500 km)
     etapes = []
@@ -478,44 +488,39 @@ def get_tours():
             'distance_kettenis': float(distance_kettenis)
         }
 
-    # Calcul du Challenge Damien vs Opa
+    # Calcul du Challenge Generationen-Duell (Oswald, Alexandre, Damien)
+    total_oswald = stats_oswald['total_global']
+    total_alexandre = stats_alexandre['total_global']
     total_damien = stats_damien['total_global']
-    total_opa = stats_opa['total_global']
-    difference = abs(total_damien - total_opa)
-    if total_damien > total_opa:
-        leader = 'Damien'
-    elif total_opa > total_damien:
-        leader = 'Opa'
-    else:
-        leader = 'Unentschieden'
-    
-    # Challenge individuel Tour du Monde (40 075 km chacun)
+    totals = [('Oswald', total_oswald), ('Alexandre', total_alexandre), ('Damien', total_damien)]
+    leader_km = max(s['total_global'] for s in [stats_oswald, stats_alexandre, stats_damien])
+    leaders = [u for u, t in totals if t == leader_km]
+    leader = leaders[0] if len(leaders) == 1 else 'Unentschieden'
+    second_km = max((t for u, t in totals if t < leader_km), default=0)
+    difference = leader_km - second_km
+
+    pct_oswald = min(100.0, (total_oswald / TOUR_DU_MONDE_KM) * 100)
+    pct_alexandre = min(100.0, (total_alexandre / TOUR_DU_MONDE_KM) * 100)
     pct_damien = min(100.0, (total_damien / TOUR_DU_MONDE_KM) * 100)
-    pct_opa = min(100.0, (total_opa / TOUR_DU_MONDE_KM) * 100)
-    
+
     challenge = {
+        'total_oswald': float(total_oswald),
+        'total_alexandre': float(total_alexandre),
         'total_damien': float(total_damien),
-        'total_opa': float(total_opa),
         'leader': leader,
         'difference': float(difference),
-        'world_tour_damien': {
-            'km': float(total_damien),
-            'pct': float(pct_damien),
-            'target': TOUR_DU_MONDE_KM
-        },
-        'world_tour_opa': {
-            'km': float(total_opa),
-            'pct': float(pct_opa),
-            'target': TOUR_DU_MONDE_KM
-        }
+        'world_tour_oswald': {'km': float(total_oswald), 'pct': float(pct_oswald), 'target': TOUR_DU_MONDE_KM},
+        'world_tour_alexandre': {'km': float(total_alexandre), 'pct': float(pct_alexandre), 'target': TOUR_DU_MONDE_KM},
+        'world_tour_damien': {'km': float(total_damien), 'pct': float(pct_damien), 'target': TOUR_DU_MONDE_KM}
     }
 
-    # Individueller Fortschritt für Damien und Opa (inkl. Weltreise-Prozent)
+    progression_oswald = _compute_progression(total_oswald, etapes)
+    progression_alexandre = _compute_progression(total_alexandre, etapes)
     progression_damien = _compute_progression(total_damien, etapes)
-    progression_opa = _compute_progression(total_opa, etapes)
     progression_global = _compute_progression(total_global, etapes)
+    progression_oswald['world_tour_pct'] = float(pct_oswald)
+    progression_alexandre['world_tour_pct'] = float(pct_alexandre)
     progression_damien['world_tour_pct'] = float(pct_damien)
-    progression_opa['world_tour_pct'] = float(pct_opa)
 
     # Convertir en format pour l'API
     if USE_SUPABASE:
@@ -534,7 +539,7 @@ def get_tours():
                 'Wetter': tour.get('wetter', ''),
                 'Km': float(tour.get('km', 0)),
                 'Bemerkungen': tour.get('bemerkungen', '') if tour.get('bemerkungen') else '',
-                'Utilisateur': _normalize_utilisateur(tour.get('utilisateur', 'Opa')),
+                'Utilisateur': _normalize_utilisateur(tour.get('utilisateur', 'Oswald')),
                 '_index': tour.get('id'),  # Utiliser l'ID Supabase comme index
                 'photos': photos
             }
@@ -550,7 +555,7 @@ def get_tours():
             tour_dict = row.to_dict()
             tour_dict['_index'] = int(idx)
             if 'Utilisateur' not in tour_dict or pd.isna(tour_dict.get('Utilisateur')):
-                tour_dict['Utilisateur'] = 'Opa'
+                tour_dict['Utilisateur'] = 'Oswald'
             else:
                 tour_dict['Utilisateur'] = _normalize_utilisateur(tour_dict['Utilisateur'])
             tour_dict['photos'] = []  # Pas de photos en mode CSV
@@ -559,11 +564,13 @@ def get_tours():
     return jsonify({
         'tours': tours,
         'stats': stats_global,
+        'stats_oswald': stats_oswald,
+        'stats_alexandre': stats_alexandre,
         'stats_damien': stats_damien,
-        'stats_opa': stats_opa,
         'progression': progression_global,
+        'progression_oswald': progression_oswald,
+        'progression_alexandre': progression_alexandre,
         'progression_damien': progression_damien,
-        'progression_opa': progression_opa,
         'challenge': challenge
     })
 
@@ -599,8 +606,7 @@ def add_tour():
         m_dep = obtenir_meteo(v_dep)
         m_ret = obtenir_meteo(v_ret)
         
-        # Qui a pédalé : Damien ou Opa
-        utilisateur = _normalize_utilisateur(data.get('utilisateur', 'Opa'))
+        utilisateur = _normalize_utilisateur(data.get('utilisateur', 'Oswald'))
         
         nouvelle_entree = {
             "Date": date_tour.strftime("%d/%m/%Y"),
@@ -638,7 +644,7 @@ def add_tour():
                     df = df.drop(columns=['Date_dt'])
                 # S'assurer que la colonne Utilisateur existe
                 if 'Utilisateur' not in df.columns:
-                    df['Utilisateur'] = 'Opa'
+                    df['Utilisateur'] = 'Oswald'
                 df = pd.concat([df, pd.DataFrame([nouvelle_entree])], ignore_index=True)
                 df.to_csv(FICHIER_DATA, index=False)
                 return jsonify({'success': True, 'message': 'Tour gespeichert!'})

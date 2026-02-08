@@ -57,45 +57,35 @@ async function loadTours() {
         document.getElementById('statsSection').style.display = 'block';
         document.getElementById('progressionSection').style.display = 'block';
         
+        const emptyStats = { total_global: 0, total_aujourdhui: 0, total_semaine: 0, total_mois: 0, total_annee: 0 };
+        const emptyProg = { ville_actuelle: '🏠 Kettenis', prochaine_ville: '🇧🇪 Liège', km_restants: 30, progression: 0, distance_kettenis: 30 };
         updateStats({
-            stats_damien: data.stats_damien || { total_global: 0, total_aujourdhui: 0, total_semaine: 0, total_mois: 0, total_annee: 0 },
-            stats_opa: data.stats_opa || { total_global: 0, total_aujourdhui: 0, total_semaine: 0, total_mois: 0, total_annee: 0 }
+            stats_oswald: data.stats_oswald || emptyStats,
+            stats_alexandre: data.stats_alexandre || emptyStats,
+            stats_damien: data.stats_damien || emptyStats
         });
         updateProgression({
-            progression_damien: data.progression_damien || {
-                ville_actuelle: '🏠 Kettenis',
-                prochaine_ville: '🇧🇪 Liège',
-                km_restants: 30,
-                progression: 0,
-                distance_kettenis: 30
-            },
-            progression_opa: data.progression_opa || {
-                ville_actuelle: '🏠 Kettenis',
-                prochaine_ville: '🇧🇪 Liège',
-                km_restants: 30,
-                progression: 0,
-                distance_kettenis: 30
-            }
+            progression_oswald: data.progression_oswald || emptyProg,
+            progression_alexandre: data.progression_alexandre || emptyProg,
+            progression_damien: data.progression_damien || emptyProg
         });
         
-        // Afficher le Challenge
         document.getElementById('challengeSection').style.display = 'block';
         updateChallenge(data.challenge || {
-            total_damien: 0,
-            total_opa: 0,
-            leader: 'Unentschieden',
-            difference: 0,
-            world_tour_damien: { km: 0, pct: 0, target: 40075 },
-            world_tour_opa: { km: 0, pct: 0, target: 40075 }
+            total_oswald: 0, total_alexandre: 0, total_damien: 0,
+            leader: 'Unentschieden', difference: 0,
+            world_tour_oswald: { km: 0, pct: 0, target: 40075 },
+            world_tour_alexandre: { km: 0, pct: 0, target: 40075 },
+            world_tour_damien: { km: 0, pct: 0, target: 40075 }
         });
         
-        // Toujours afficher l'historique (même vide)
         document.getElementById('historySection').style.display = 'block';
         if (data.tours && data.tours.length > 0) {
             displayTours(data.tours);
         } else {
+            document.getElementById('toursListOswald').innerHTML = '<p class="empty-history">Keine Touren</p>';
+            document.getElementById('toursListAlexandre').innerHTML = '<p class="empty-history">Keine Touren</p>';
             document.getElementById('toursListDamien').innerHTML = '<p class="empty-history">Keine Touren</p>';
-            document.getElementById('toursListOpa').innerHTML = '<p class="empty-history">Keine Touren</p>';
         }
     } catch (error) {
         console.error('Erreur lors du chargement des tours:', error);
@@ -106,39 +96,24 @@ async function loadTours() {
         document.getElementById('challengeSection').style.display = 'block';
         document.getElementById('historySection').style.display = 'block';
         
+        const emptyStats = { total_global: 0, total_aujourdhui: 0, total_semaine: 0, total_mois: 0, total_annee: 0 };
+        const emptyProg = { ville_actuelle: '🏠 Kettenis', prochaine_ville: '🇧🇪 Liège', km_restants: 30, progression: 0, distance_kettenis: 30 };
         updateStats({
-            stats_damien: { total_global: 0, total_aujourdhui: 0, total_semaine: 0, total_mois: 0, total_annee: 0 },
-            stats_opa: { total_global: 0, total_aujourdhui: 0, total_semaine: 0, total_mois: 0, total_annee: 0 }
+            stats_oswald: emptyStats, stats_alexandre: emptyStats, stats_damien: emptyStats
         });
         updateProgression({
-            progression_damien: {
-                ville_actuelle: '🏠 Kettenis',
-                prochaine_ville: '🇧🇪 Liège',
-                km_restants: 30,
-                progression: 0,
-                distance_kettenis: 30
-            },
-            progression_opa: {
-                ville_actuelle: '🏠 Kettenis',
-                prochaine_ville: '🇧🇪 Liège',
-                km_restants: 30,
-                progression: 0,
-                distance_kettenis: 30
-            }
+            progression_oswald: emptyProg, progression_alexandre: emptyProg, progression_damien: emptyProg
         });
-        
-        document.getElementById('challengeSection').style.display = 'block';
         updateChallenge({
-            total_damien: 0,
-            total_opa: 0,
-            leader: 'Unentschieden',
-            difference: 0,
-            world_tour_damien: { km: 0, pct: 0, target: 40075 },
-            world_tour_opa: { km: 0, pct: 0, target: 40075 }
+            total_oswald: 0, total_alexandre: 0, total_damien: 0,
+            leader: 'Unentschieden', difference: 0,
+            world_tour_oswald: { km: 0, pct: 0, target: 40075 },
+            world_tour_alexandre: { km: 0, pct: 0, target: 40075 },
+            world_tour_damien: { km: 0, pct: 0, target: 40075 }
         });
-        
+        document.getElementById('toursListOswald').innerHTML = '<p class="empty-history">Keine Touren</p>';
+        document.getElementById('toursListAlexandre').innerHTML = '<p class="empty-history">Keine Touren</p>';
         document.getElementById('toursListDamien').innerHTML = '<p class="empty-history">Keine Touren</p>';
-        document.getElementById('toursListOpa').innerHTML = '<p class="empty-history">Keine Touren</p>';
         
         // Ne pas afficher de toast d'erreur pour ne pas perturber l'utilisateur
         // Le formulaire reste fonctionnel même si le chargement échoue
@@ -147,115 +122,104 @@ async function loadTours() {
 
 // Statistiken pro Nutzer aktualisieren
 function updateStats(data) {
-    const statsDamien = data.stats_damien || {};
-    const statsOpa = data.stats_opa || {};
-    
-    document.getElementById('statDamienAujourdhui').textContent = formatDistance(statsDamien.total_aujourdhui || 0);
-    document.getElementById('statDamienSemaine').textContent = formatDistance(statsDamien.total_semaine || 0);
-    document.getElementById('statDamienMois').textContent = formatDistance(statsDamien.total_mois || 0);
-    document.getElementById('statDamienAnnee').textContent = formatDistance(statsDamien.total_annee || 0);
-    document.getElementById('statDamienTotal').textContent = formatDistance(statsDamien.total_global || 0);
-    
-    document.getElementById('statOpaAujourdhui').textContent = formatDistance(statsOpa.total_aujourdhui || 0);
-    document.getElementById('statOpaSemaine').textContent = formatDistance(statsOpa.total_semaine || 0);
-    document.getElementById('statOpaMois').textContent = formatDistance(statsOpa.total_mois || 0);
-    document.getElementById('statOpaAnnee').textContent = formatDistance(statsOpa.total_annee || 0);
-    document.getElementById('statOpaTotal').textContent = formatDistance(statsOpa.total_global || 0);
+    const users = ['Oswald', 'Alexandre', 'Damien'];
+    const keys = ['oswald', 'alexandre', 'damien'];
+    users.forEach((name, i) => {
+        const stats = data[`stats_${keys[i]}`] || {};
+        document.getElementById(`stat${name}Aujourdhui`).textContent = formatDistance(stats.total_aujourdhui || 0);
+        document.getElementById(`stat${name}Semaine`).textContent = formatDistance(stats.total_semaine || 0);
+        document.getElementById(`stat${name}Mois`).textContent = formatDistance(stats.total_mois || 0);
+        document.getElementById(`stat${name}Annee`).textContent = formatDistance(stats.total_annee || 0);
+        document.getElementById(`stat${name}Total`).textContent = formatDistance(stats.total_global || 0);
+    });
 }
 
-// Challenge Damien vs Opa aktualisieren
+// Challenge Generationen-Duell aktualisieren
 function updateChallenge(challenge) {
-    document.getElementById('totalDamien').textContent = formatDistance(challenge.total_damien || 0);
-    document.getElementById('totalOpa').textContent = formatDistance(challenge.total_opa || 0);
+    ['Oswald', 'Alexandre', 'Damien'].forEach(name => {
+        const key = name.toLowerCase();
+        document.getElementById(`total${name}`).textContent = formatDistance(challenge[`total_${key}`] || 0);
+        const wt = challenge[`world_tour_${key}`] || { km: 0, pct: 0 };
+        document.getElementById(`worldTour${name}Km`).textContent = formatDistance(wt.km || 0);
+        document.getElementById(`worldTour${name}Fill`).style.width = `${Math.min(100, wt.pct || 0)}%`;
+        document.getElementById(`worldTour${name}Pct`).textContent = formatPercent(wt.pct || 0);
+    });
     
     let message = '';
-    if (challenge.leader === 'Égalité' || challenge.leader === 'Unentschieden') {
-        message = 'Unentschieden! Damien und Opa haben die gleiche Strecke zurückgelegt.';
+    if (challenge.leader === 'Unentschieden') {
+        message = 'Unentschieden! Keine Touren eingetragen oder gleiche Strecke.';
     } else {
         const diff = formatDistance(challenge.difference || 0);
         message = `${challenge.leader} führt mit ${diff} Vorsprung!`;
     }
     document.getElementById('challengeMessage').textContent = message;
-    
-    // Tour du Monde individuel (40 075 km chacun)
-    const wtDamien = challenge.world_tour_damien || { km: 0, pct: 0 };
-    const wtOpa = challenge.world_tour_opa || { km: 0, pct: 0 };
-    
-    document.getElementById('worldTourDamienKm').textContent = formatDistance(wtDamien.km || 0);
-    document.getElementById('worldTourOpaKm').textContent = formatDistance(wtOpa.km || 0);
-    
-    document.getElementById('worldTourDamienFill').style.width = `${Math.min(100, wtDamien.pct || 0)}%`;
-    document.getElementById('worldTourOpaFill').style.width = `${Math.min(100, wtOpa.pct || 0)}%`;
-    
-    document.getElementById('worldTourDamienPct').textContent = formatPercent(wtDamien.pct || 0);
-    document.getElementById('worldTourOpaPct').textContent = formatPercent(wtOpa.pct || 0);
 }
 
-// Fortschritt für Damien und Opa aktualisieren (zwei Spalten)
+// Fortschritt für Oswald, Alexandre und Damien aktualisieren
 function updateProgression(data) {
+    ['Oswald', 'Alexandre', 'Damien'].forEach(name => {
+        const key = name.toLowerCase();
+        const prog = data[`progression_${key}`] || {};
+        const worldPct = prog.world_tour_pct ?? (prog.progression ?? 0) * 100;
+        document.getElementById(`globeMessage${name}`).textContent = `${name} hat ${formatPercent(worldPct)} der Weltreise geschafft!`;
+        document.getElementById(`villeActuelle${name}`).textContent = prog.ville_actuelle || '🏠 Kettenis';
+        const nextCity = prog.prochaine_ville || '🇧🇪 Liège';
+        document.getElementById(`prochaineVille${name}`).textContent = nextCity;
+        document.getElementById(`progressBarLabel${name}`).textContent = `Aktuelle Etappe: Auf dem Weg nach ${nextCity.replace(/^[^\s]+\s/, '')}`;
+        document.getElementById(`kmRestants${name}`).textContent = formatDistance(prog.km_restants ?? 30);
+        const pct = Math.min(100, Math.max(0, (prog.progression ?? 0) * 100));
+        document.getElementById(`progressFill${name}`).style.width = `${pct}%`;
+        document.getElementById(`progressText${name}`).textContent = formatPercent(pct);
+    });
+    
+    const progOswald = data.progression_oswald || {};
+    const progAlexandre = data.progression_alexandre || {};
     const progDamien = data.progression_damien || {};
-    const progOpa = data.progression_opa || {};
-    
-    // Damien-Spalte
-    const worldPctDamien = progDamien.world_tour_pct ?? (progDamien.progression ?? 0) * 100;
-    document.getElementById('globeMessageDamien').textContent = `Damien hat ${formatPercent(worldPctDamien)} der Weltreise geschafft!`;
-    document.getElementById('villeActuelleDamien').textContent = progDamien.ville_actuelle || '🏠 Kettenis';
-    const kmRestDamien = progDamien.km_restants ?? 30;
-    const nextCityDamien = progDamien.prochaine_ville || '🇧🇪 Liège';
-    document.getElementById('prochaineVilleDamien').textContent = nextCityDamien;
-    document.getElementById('progressBarLabelDamien').textContent = `Aktuelle Etappe: Auf dem Weg nach ${nextCityDamien.replace(/^[^\s]+\s/, '')}`;
-    document.getElementById('kmRestantsDamien').textContent = formatDistance(kmRestDamien);
-    const pctDamien = Math.min(100, Math.max(0, (progDamien.progression ?? 0) * 100));
-    document.getElementById('progressFillDamien').style.width = `${pctDamien}%`;
-    document.getElementById('progressTextDamien').textContent = formatPercent(pctDamien);
-    
-    // Opa-Spalte
-    const worldPctOpa = progOpa.world_tour_pct ?? (progOpa.progression ?? 0) * 100;
-    document.getElementById('globeMessageOpa').textContent = `Opa hat ${formatPercent(worldPctOpa)} der Weltreise geschafft!`;
-    document.getElementById('villeActuelleOpa').textContent = progOpa.ville_actuelle || '🏠 Kettenis';
-    const kmRestOpa = progOpa.km_restants ?? 30;
-    const nextCityOpa = progOpa.prochaine_ville || '🇧🇪 Liège';
-    document.getElementById('prochaineVilleOpa').textContent = nextCityOpa;
-    document.getElementById('progressBarLabelOpa').textContent = `Aktuelle Etappe: Auf dem Weg nach ${nextCityOpa.replace(/^[^\s]+\s/, '')}`;
-    document.getElementById('kmRestantsOpa').textContent = formatDistance(kmRestOpa);
-    const pctOpa = Math.min(100, Math.max(0, (progOpa.progression ?? 0) * 100));
-    document.getElementById('progressFillOpa').style.width = `${pctOpa}%`;
-    document.getElementById('progressTextOpa').textContent = formatPercent(pctOpa);
-    
-    // E-Mail-Link (Gesamtfortschritt)
-    const progGlobal = data.progression || progOpa;
     const emailSubject = encodeURIComponent("Opa's Bicycle Update");
     const emailBody = encodeURIComponent(
-        `Gesamt: ${formatDistance(toursData.stats?.total_global || 0)}\nDamien: ${progDamien.ville_actuelle || '🏠 Kettenis'}\nOpa: ${progOpa.ville_actuelle || '🏠 Kettenis'}`
+        `Gesamt: ${formatDistance(toursData.stats?.total_global || 0)}\nOswald: ${progOswald.ville_actuelle || '🏠 Kettenis'}\nAlexandre: ${progAlexandre.ville_actuelle || '🏠 Kettenis'}\nDamien: ${progDamien.ville_actuelle || '🏠 Kettenis'}`
     );
     document.getElementById('emailLink').href = `mailto:cogi003@gmail.com?subject=${emailSubject}&body=${emailBody}`;
 }
 
-// Afficher les tours en 2 colonnes (Damien | Opa)
+// Normaliser Utilisateur : Opa (ancien) -> Oswald
+function normalizeUser(u) {
+    const v = (u || 'Oswald').trim();
+    return v === 'Opa' ? 'Oswald' : v;
+}
+
+// Afficher les tours en 3 colonnes (Oswald | Alexandre | Damien)
 function displayTours(tours) {
-    const toursListDamien = document.getElementById('toursListDamien');
-    const toursListOpa = document.getElementById('toursListOpa');
-    toursListDamien.innerHTML = '';
-    toursListOpa.innerHTML = '';
+    const lists = {
+        Oswald: document.getElementById('toursListOswald'),
+        Alexandre: document.getElementById('toursListAlexandre'),
+        Damien: document.getElementById('toursListDamien')
+    };
+    Object.values(lists).forEach(el => { el.innerHTML = ''; });
     
     if (tours.length === 0) {
-        toursListDamien.innerHTML = '<p class="empty-history">Keine Touren</p>';
-        toursListOpa.innerHTML = '<p class="empty-history">Keine Touren</p>';
+        Object.values(lists).forEach(el => { el.innerHTML = '<p class="empty-history">Keine Touren</p>'; });
         return;
     }
     
-    const toursDamien = tours.filter(t => (t.Utilisateur || 'Opa').trim() === 'Damien');
-    const toursOpa = tours.filter(t => (t.Utilisateur || 'Opa').trim() !== 'Damien');
+    const toursByUser = { Oswald: [], Alexandre: [], Damien: [] };
+    tours.forEach(t => {
+        const u = normalizeUser(t.Utilisateur);
+        if (toursByUser[u]) toursByUser[u].push(t);
+        else toursByUser.Oswald.push(t); // fallback
+    });
     
-    [toursDamien, toursOpa].forEach((tourList, idx) => {
-        const targetList = idx === 0 ? toursListDamien : toursListOpa;
+    ['Oswald', 'Alexandre', 'Damien'].forEach(user => {
+        const tourList = toursByUser[user];
+        const targetList = lists[user];
         if (tourList.length === 0) {
             targetList.innerHTML = '<p class="empty-history">Keine Touren</p>';
             return;
         }
         tourList.forEach((tour, displayIndex) => {
             const tourItem = document.createElement('div');
-            tourItem.className = 'tour-item tour-item-clickable';
+            const userClass = `tour-item-${user.toLowerCase()}`;
+            tourItem.className = `tour-item tour-item-clickable ${userClass}`;
             const realIndex = tour._index !== undefined ? tour._index : displayIndex;
             const tourDataAttr = JSON.stringify(tour).replace(/"/g, '&quot;');
             const photos = tour.photos && Array.isArray(tour.photos) ? tour.photos : [];
@@ -267,11 +231,13 @@ function displayTours(tours) {
                     <span class="tour-photo-icon-fallback" style="display:none">📸</span>
                    </div>`
                 : '';
+            const userKey = user.toLowerCase();
             tourItem.innerHTML = `
             ${photoPreviewHtml}
             <div class="tour-field">
                 <strong>Datum</strong>
                 <span>${tour.Date || ''}</span>
+                <span class="tour-user-pill tour-user-pill-${userKey}" title="${user}">${user}</span>
                 ${tour.Wetter && String(tour.Wetter).trim() && tour.Wetter !== 'N/A' ? `
                 <span class="tour-wetter">🌤️ ${escapeHtml(String(tour.Wetter).trim())}</span>
                 ` : ''}
@@ -478,7 +444,7 @@ async function handleFormSubmit(e) {
         heure_etape: document.getElementById('heure_etape').value,
         heure_arrivee: document.getElementById('heure_arrivee').value,
         notes: document.getElementById('notes').value,
-        utilisateur: document.getElementById('utilisateur').value || 'Opa'
+        utilisateur: document.getElementById('utilisateur').value || 'Oswald'
     };
     
     try {
@@ -503,7 +469,7 @@ async function handleFormSubmit(e) {
             document.getElementById('heure_depart').value = '10:00';
             document.getElementById('heure_etape').value = '11:30';
             document.getElementById('heure_arrivee').value = '12:30';
-            document.getElementById('utilisateur').value = 'Opa';
+            document.getElementById('utilisateur').value = 'Oswald';
             
             // Recharger les données
             await loadTours();

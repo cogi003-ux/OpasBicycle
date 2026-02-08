@@ -8,6 +8,10 @@
     --primary-color: #2e7d32;
     --primary-light: #4caf50;
     --primary-dark: #1b5e20;
+    /* Couleurs utilisateurs */
+    --user-oswald: #2ecc71;
+    --user-alexandre: #f39c12;
+    --user-damien: #3498db;
     --glass-bg: rgba(255, 255, 255, 0.1);
     --glass-border: rgba(255, 255, 255, 0.2);
     --text-primary: #1a1a1a;
@@ -273,13 +277,33 @@ body {
     margin-bottom: 30px;
 }
 
+.stats-grid-three {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+@media (max-width: 900px) {
+    .stats-grid-three {
+        grid-template-columns: 1fr;
+    }
+}
+
 .stats-block {
-    margin-bottom: 40px;
+    margin-bottom: 0;
 }
 
 .stats-block:last-child {
     margin-bottom: 0;
 }
+
+/* Bordures colorées et glow par utilisateur */
+.stats-block-oswald { border-top: 3px solid var(--user-oswald); }
+.stats-block-oswald h2 { text-shadow: 0 0 20px rgba(46, 204, 113, 0.5), 0 1px 3px rgba(0,0,0,0.5); }
+.stats-block-alexandre { border-top: 3px solid var(--user-alexandre); }
+.stats-block-alexandre h2 { text-shadow: 0 0 20px rgba(243, 156, 18, 0.5), 0 1px 3px rgba(0,0,0,0.5); }
+.stats-block-damien { border-top: 3px solid var(--user-damien); }
+.stats-block-damien h2 { text-shadow: 0 0 20px rgba(52, 152, 219, 0.5), 0 1px 3px rgba(0,0,0,0.5); }
 
 .stats-block h2 {
     color: #ffffff;
@@ -329,7 +353,7 @@ body {
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-/* Challenge Damien vs Opa */
+/* Challenge Generationen-Duell */
 .challenge-card h2 {
     color: white;
     margin-bottom: 25px;
@@ -355,6 +379,11 @@ body {
     margin-right: auto;
 }
 
+.challenge-stats-three {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 100%;
+}
+
 .challenge-stat {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 15px;
@@ -368,6 +397,9 @@ body {
     font-weight: 600;
     margin-bottom: 10px;
 }
+.challenge-stat-oswald .challenge-label { color: var(--user-oswald); text-shadow: 0 0 12px rgba(46, 204, 113, 0.6); }
+.challenge-stat-alexandre .challenge-label { color: var(--user-alexandre); text-shadow: 0 0 12px rgba(243, 156, 18, 0.6); }
+.challenge-stat-damien .challenge-label { color: var(--user-damien); text-shadow: 0 0 12px rgba(52, 152, 219, 0.6); }
 
 .challenge-value {
     font-size: 2rem;
@@ -401,6 +433,11 @@ body {
     margin: 0 auto;
 }
 
+.world-tour-grid-three {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 100%;
+}
+
 .world-tour-item {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 15px;
@@ -414,6 +451,9 @@ body {
     font-size: 1rem;
     margin-bottom: 8px;
 }
+.world-tour-item-oswald .world-tour-label { text-shadow: 0 0 12px rgba(46, 204, 113, 0.6); }
+.world-tour-item-alexandre .world-tour-label { text-shadow: 0 0 12px rgba(243, 156, 18, 0.6); }
+.world-tour-item-damien .world-tour-label { text-shadow: 0 0 12px rgba(52, 152, 219, 0.6); }
 
 .world-tour-value {
     color: #ffffff;
@@ -437,6 +477,9 @@ body {
     border-radius: 6px;
     transition: width 0.5s ease;
 }
+.world-tour-item-oswald .progress-fill-small { background: linear-gradient(90deg, #2ecc71, #58d68d); }
+.world-tour-item-alexandre .progress-fill-small { background: linear-gradient(90deg, #f39c12, #f5b041); }
+.world-tour-item-damien .progress-fill-small { background: linear-gradient(90deg, #3498db, #5dade2); }
 
 .world-tour-pct {
     color: #ffffff;
@@ -452,6 +495,13 @@ body {
     margin-top: 20px;
 }
 
+.history-three-columns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 20px;
+}
+
 .history-column {
     min-height: 200px;
 }
@@ -461,9 +511,10 @@ body {
     font-size: 1.2rem;
     font-weight: 700;
     margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
 }
+.history-column-oswald .history-column-title { color: var(--user-oswald); text-shadow: 0 0 14px rgba(46, 204, 113, 0.6); }
+.history-column-alexandre .history-column-title { color: var(--user-alexandre); text-shadow: 0 0 14px rgba(243, 156, 18, 0.6); }
+.history-column-damien .history-column-title { color: var(--user-damien); text-shadow: 0 0 14px rgba(52, 152, 219, 0.6); }
 
 .empty-history {
     color: rgba(255, 255, 255, 0.7);
@@ -501,6 +552,14 @@ body {
     min-height: 280px;
 }
 
+.progression-three-columns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 20px;
+    min-height: 280px;
+}
+
 .progression-column {
     display: flex;
     flex-direction: column;
@@ -511,6 +570,15 @@ body {
     flex: 1;
     min-width: 0;
 }
+.progression-column-oswald { border-top: 3px solid var(--user-oswald); }
+.progression-column-oswald .progression-column-title { text-shadow: 0 0 16px rgba(46, 204, 113, 0.6), 0 1px 3px rgba(0,0,0,0.5); }
+.progression-column-oswald .progress-fill { background: linear-gradient(90deg, #2ecc71, #58d68d); box-shadow: 0 0 20px rgba(46, 204, 113, 0.5); }
+.progression-column-alexandre { border-top: 3px solid var(--user-alexandre); }
+.progression-column-alexandre .progression-column-title { text-shadow: 0 0 16px rgba(243, 156, 18, 0.6), 0 1px 3px rgba(0,0,0,0.5); }
+.progression-column-alexandre .progress-fill { background: linear-gradient(90deg, #f39c12, #f5b041); box-shadow: 0 0 20px rgba(243, 156, 18, 0.5); }
+.progression-column-damien { border-top: 3px solid var(--user-damien); }
+.progression-column-damien .progression-column-title { text-shadow: 0 0 16px rgba(52, 152, 219, 0.6), 0 1px 3px rgba(0,0,0,0.5); }
+.progression-column-damien .progress-fill { background: linear-gradient(90deg, #3498db, #5dade2); box-shadow: 0 0 20px rgba(52, 152, 219, 0.5); }
 
 .progression-column-title {
     color: #ffffff;
@@ -732,6 +800,23 @@ body {
 .tour-item-clickable {
     cursor: pointer;
 }
+.tour-item-oswald { border-left: 3px solid var(--user-oswald); }
+.tour-item-alexandre { border-left: 3px solid var(--user-alexandre); }
+.tour-item-damien { border-left: 3px solid var(--user-damien); }
+
+.tour-user-pill {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.tour-user-pill-oswald { background: rgba(46, 204, 113, 0.35); color: var(--user-oswald); }
+.tour-user-pill-alexandre { background: rgba(243, 156, 18, 0.35); color: var(--user-alexandre); }
+.tour-user-pill-damien { background: rgba(52, 152, 219, 0.35); color: var(--user-damien); }
 
 .tour-item:hover {
     background: rgba(255, 255, 255, 0.15);
@@ -1072,15 +1157,22 @@ body {
         gap: 15px;
     }
 
-    .progression-two-columns {
+    .progression-two-columns,
+    .progression-three-columns {
         grid-template-columns: 1fr;
     }
 
-    .history-two-columns {
+    .history-two-columns,
+    .history-three-columns {
         grid-template-columns: 1fr;
     }
 
-    .world-tour-grid {
+    .world-tour-grid,
+    .world-tour-grid-three {
+        grid-template-columns: 1fr;
+    }
+
+    .challenge-stats-three {
         grid-template-columns: 1fr;
     }
 

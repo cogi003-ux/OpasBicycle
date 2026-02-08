@@ -64,7 +64,8 @@
                     <div class="form-group">
                         <label for="utilisateur">Wer ist gefahren?</label>
                         <select id="utilisateur" name="utilisateur" required>
-                            <option value="Opa">Opa</option>
+                            <option value="Oswald">Oswald</option>
+                            <option value="Alexandre">Alexandre</option>
                             <option value="Damien">Damien</option>
                         </select>
                     </div>
@@ -84,9 +85,69 @@
             </form>
         </section>
 
-        <!-- Bloc 1 : Statistiken Damien -->
-        <section class="stats-section stats-block-damien" id="statsSection" style="display: none;">
-            <div class="glass-card stats-block">
+        <!-- Blocs Statistiken : Oswald, Alexandre, Damien -->
+        <section class="stats-section stats-grid-three" id="statsSection" style="display: none;">
+            <div class="glass-card stats-block stats-block-oswald">
+                <h2>Statistiken Oswald</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">☀️</div>
+                        <div class="stat-value" id="statOswaldAujourdhui">0 km</div>
+                        <div class="stat-label">Heute</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-value" id="statOswaldSemaine">0 km</div>
+                        <div class="stat-label">Woche</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📆</div>
+                        <div class="stat-value" id="statOswaldMois">0 km</div>
+                        <div class="stat-label">Monat</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🗓️</div>
+                        <div class="stat-value" id="statOswaldAnnee">0 km</div>
+                        <div class="stat-label">Jahr</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🌍</div>
+                        <div class="stat-value" id="statOswaldTotal">0 km</div>
+                        <div class="stat-label">Gesamt</div>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-card stats-block stats-block-alexandre">
+                <h2>Statistiken Alexandre</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">☀️</div>
+                        <div class="stat-value" id="statAlexandreAujourdhui">0 km</div>
+                        <div class="stat-label">Heute</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-value" id="statAlexandreSemaine">0 km</div>
+                        <div class="stat-label">Woche</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📆</div>
+                        <div class="stat-value" id="statAlexandreMois">0 km</div>
+                        <div class="stat-label">Monat</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🗓️</div>
+                        <div class="stat-value" id="statAlexandreAnnee">0 km</div>
+                        <div class="stat-label">Jahr</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🌍</div>
+                        <div class="stat-value" id="statAlexandreTotal">0 km</div>
+                        <div class="stat-label">Gesamt</div>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-card stats-block stats-block-damien">
                 <h2>Statistiken Damien</h2>
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -116,52 +177,24 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Bloc 2 : Statistiken Opa -->
-            <div class="glass-card stats-block">
-                <h2>Statistiken Opa</h2>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">☀️</div>
-                        <div class="stat-value" id="statOpaAujourdhui">0 km</div>
-                        <div class="stat-label">Heute</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📅</div>
-                        <div class="stat-value" id="statOpaSemaine">0 km</div>
-                        <div class="stat-label">Woche</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📆</div>
-                        <div class="stat-value" id="statOpaMois">0 km</div>
-                        <div class="stat-label">Monat</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🗓️</div>
-                        <div class="stat-value" id="statOpaAnnee">0 km</div>
-                        <div class="stat-label">Jahr</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🌍</div>
-                        <div class="stat-value" id="statOpaTotal">0 km</div>
-                        <div class="stat-label">Gesamt</div>
-                    </div>
-                </div>
-            </div>
         </section>
 
-        <!-- Weltreise-Challenge Damien vs Opa -->
+        <!-- Generationen-Duell -->
         <section class="glass-card challenge-card" id="challengeSection" style="display: none;">
-            <h2>🏆 Weltreise-Challenge Damien vs Opa</h2>
+            <h2>🏆 Generationen-Duell: Wer beendet die Weltreise zuerst?</h2>
             <div class="challenge-content">
-                <div class="challenge-stats">
-                    <div class="challenge-stat">
+                <div class="challenge-stats challenge-stats-three">
+                    <div class="challenge-stat challenge-stat-oswald">
+                        <div class="challenge-label">Oswald</div>
+                        <div class="challenge-value" id="totalOswald">0 km</div>
+                    </div>
+                    <div class="challenge-stat challenge-stat-alexandre">
+                        <div class="challenge-label">Alexandre</div>
+                        <div class="challenge-value" id="totalAlexandre">0 km</div>
+                    </div>
+                    <div class="challenge-stat challenge-stat-damien">
                         <div class="challenge-label">Damien</div>
                         <div class="challenge-value" id="totalDamien">0 km</div>
-                    </div>
-                    <div class="challenge-stat">
-                        <div class="challenge-label">Opa</div>
-                        <div class="challenge-value" id="totalOpa">0 km</div>
                     </div>
                 </div>
                 <div class="challenge-message" id="challengeMessage">
@@ -169,8 +202,24 @@
                 </div>
             </div>
             <h3 class="world-tour-title">🌍 Weltumrundung (40 075 km pro Person)</h3>
-            <div class="world-tour-grid">
-                <div class="world-tour-item">
+            <div class="world-tour-grid world-tour-grid-three">
+                <div class="world-tour-item world-tour-item-oswald">
+                    <div class="world-tour-label">Oswald</div>
+                    <div class="world-tour-value" id="worldTourOswaldKm">0 km</div>
+                    <div class="progress-bar-small">
+                        <div class="progress-fill-small" id="worldTourOswaldFill"></div>
+                    </div>
+                    <div class="world-tour-pct" id="worldTourOswaldPct">0 %</div>
+                </div>
+                <div class="world-tour-item world-tour-item-alexandre">
+                    <div class="world-tour-label">Alexandre</div>
+                    <div class="world-tour-value" id="worldTourAlexandreKm">0 km</div>
+                    <div class="progress-bar-small">
+                        <div class="progress-fill-small" id="worldTourAlexandreFill"></div>
+                    </div>
+                    <div class="world-tour-pct" id="worldTourAlexandrePct">0 %</div>
+                </div>
+                <div class="world-tour-item world-tour-item-damien">
                     <div class="world-tour-label">Damien</div>
                     <div class="world-tour-value" id="worldTourDamienKm">0 km</div>
                     <div class="progress-bar-small">
@@ -178,22 +227,64 @@
                     </div>
                     <div class="world-tour-pct" id="worldTourDamienPct">0 %</div>
                 </div>
-                <div class="world-tour-item">
-                    <div class="world-tour-label">Opa</div>
-                    <div class="world-tour-value" id="worldTourOpaKm">0 km</div>
-                    <div class="progress-bar-small">
-                        <div class="progress-fill-small" id="worldTourOpaFill"></div>
-                    </div>
-                    <div class="world-tour-pct" id="worldTourOpaPct">0 %</div>
-                </div>
             </div>
         </section>
 
-        <!-- Progression: Zwei gleich große Spalten (Damien | Opa) -->
+        <!-- Progression: Drei Spalten (Oswald | Alexandre | Damien) -->
         <section class="glass-card progression-card" id="progressionSection" style="display: none;">
             <h2>🌍 Mein Weltreise-Fortschritt</h2>
-            <div class="progression-two-columns">
-                <div class="progression-column">
+            <div class="progression-three-columns">
+                <div class="progression-column progression-column-oswald">
+                    <h3 class="progression-column-title"><span class="title-globe">🌍</span> Oswald</h3>
+                    <div class="progression-globe">
+                        <span class="globe-icon">🌍</span>
+                        <p class="globe-message" id="globeMessageOswald">Oswald hat 0,0 % der Weltreise geschafft!</p>
+                    </div>
+                    <div class="current-location">
+                        <p class="location-label">Aktueller Zwischenstopp:</p>
+                        <h3 class="location-name" id="villeActuelleOswald">🏠 Kettenis</h3>
+                    </div>
+                    <div class="next-location">
+                        <p class="location-label">Nächstes Ziel:</p>
+                        <p class="next-city" id="prochaineVilleOswald">🇧🇪 Liège</p>
+                        <p class="km-restants">Noch <span id="kmRestantsOswald">30,0 km</span></p>
+                    </div>
+                    <div class="progress-container">
+                        <p class="progress-bar-label" id="progressBarLabelOswald">Aktuelle Etappe: Auf dem Weg nach Liège</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFillOswald">
+                                <span class="progress-traveler">🚲</span>
+                            </div>
+                        </div>
+                        <div class="progress-text" id="progressTextOswald">0 %</div>
+                    </div>
+                </div>
+                <div class="progression-column progression-column-alexandre">
+                    <h3 class="progression-column-title"><span class="title-globe">🌍</span> Alexandre</h3>
+                    <div class="progression-globe">
+                        <span class="globe-icon">🌍</span>
+                        <p class="globe-message" id="globeMessageAlexandre">Alexandre hat 0,0 % der Weltreise geschafft!</p>
+                    </div>
+                    <div class="current-location">
+                        <p class="location-label">Aktueller Zwischenstopp:</p>
+                        <h3 class="location-name" id="villeActuelleAlexandre">🏠 Kettenis</h3>
+                    </div>
+                    <div class="next-location">
+                        <p class="location-label">Nächstes Ziel:</p>
+                        <p class="next-city" id="prochaineVilleAlexandre">🇧🇪 Liège</p>
+                        <p class="km-restants">Noch <span id="kmRestantsAlexandre">30,0 km</span></p>
+                    </div>
+                    <div class="progress-container">
+                        <p class="progress-bar-label" id="progressBarLabelAlexandre">Aktuelle Etappe: Auf dem Weg nach Liège</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFillAlexandre">
+                                <span class="progress-traveler">🚲</span>
+                            </div>
+                        </div>
+                        <div class="progress-text" id="progressTextAlexandre">0 %</div>
+                    </div>
+                </div>
+                <div class="progression-column progression-column-damien">
                     <h3 class="progression-column-title"><span class="title-globe">🌍</span> Damien</h3>
                     <div class="progression-globe">
                         <span class="globe-icon">🌍</span>
@@ -218,31 +309,6 @@
                         <div class="progress-text" id="progressTextDamien">0 %</div>
                     </div>
                 </div>
-                <div class="progression-column">
-                    <h3 class="progression-column-title"><span class="title-globe">🌍</span> Opa</h3>
-                    <div class="progression-globe">
-                        <span class="globe-icon">🌍</span>
-                        <p class="globe-message" id="globeMessageOpa">Opa hat 0,0 % der Weltreise geschafft!</p>
-                    </div>
-                    <div class="current-location">
-                        <p class="location-label">Aktueller Zwischenstopp:</p>
-                        <h3 class="location-name" id="villeActuelleOpa">🏠 Kettenis</h3>
-                    </div>
-                    <div class="next-location">
-                        <p class="location-label">Nächstes Ziel:</p>
-                        <p class="next-city" id="prochaineVilleOpa">🇧🇪 Liège</p>
-                        <p class="km-restants">Noch <span id="kmRestantsOpa">30,0 km</span></p>
-                    </div>
-                    <div class="progress-container">
-                        <p class="progress-bar-label" id="progressBarLabelOpa">Aktuelle Etappe: Auf dem Weg nach Liège</p>
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progressFillOpa">
-                                <span class="progress-traveler">🚲</span>
-                            </div>
-                        </div>
-                        <div class="progress-text" id="progressTextOpa">0 %</div>
-                    </div>
-                </div>
             </div>
             <div class="progression-footer">
                 <a href="#" id="emailLink" class="btn-secondary">
@@ -251,17 +317,21 @@
             </div>
         </section>
 
-        <!-- Historie in 2 Spalten -->
+        <!-- Historie in 3 Spalten -->
         <section class="glass-card history-card" id="historySection" style="display: none;">
             <h2>📜 Letzte Touren</h2>
-            <div class="history-two-columns">
-                <div class="history-column">
+            <div class="history-three-columns">
+                <div class="history-column history-column-oswald">
+                    <h3 class="history-column-title">Oswald</h3>
+                    <div class="tours-list" id="toursListOswald"></div>
+                </div>
+                <div class="history-column history-column-alexandre">
+                    <h3 class="history-column-title">Alexandre</h3>
+                    <div class="tours-list" id="toursListAlexandre"></div>
+                </div>
+                <div class="history-column history-column-damien">
                     <h3 class="history-column-title">Damien</h3>
                     <div class="tours-list" id="toursListDamien"></div>
-                </div>
-                <div class="history-column">
-                    <h3 class="history-column-title">Opa</h3>
-                    <div class="tours-list" id="toursListOpa"></div>
                 </div>
             </div>
         </section>
