@@ -339,9 +339,21 @@ body {
 }
 
 .stat-icon {
-    font-size: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.85);
 }
+.stat-icon svg {
+    width: 2rem;
+    height: 2rem;
+    stroke-width: 2;
+}
+/* Couleur d'accent par profil */
+.stats-block-oswald .stat-icon { color: rgba(46, 204, 113, 0.95); }
+.stats-block-alexandre .stat-icon { color: rgba(243, 156, 18, 0.95); }
+.stats-block-damien .stat-icon { color: rgba(52, 152, 219, 0.95); }
 
 /* Bannière notification Live */
 .live-notification-banner {
@@ -1303,7 +1315,8 @@ body {
         scroll-snap-align: start;
     }
     .stats-block h2 { font-size: 1.15rem; }
-    .stat-icon { font-size: 1.8rem; margin-bottom: 6px; }
+    .stat-icon { margin-bottom: 6px; }
+    .stat-icon svg { width: 1.5rem; height: 1.5rem; }
     .stat-value { font-size: 1.5rem; }
     .stat-label { font-size: 0.8rem; }
     .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }

@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initializeApp() {
+    // Initialiser les icônes Lucide (stats dashboard)
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    
     // Définir la date d'aujourd'hui par défaut
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('date').value = today;
