@@ -291,6 +291,11 @@ body {
 
 .stats-block {
     margin-bottom: 0;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+.stats-block:hover {
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .stats-block:last-child {
@@ -299,11 +304,14 @@ body {
 
 /* Bordures colorées et glow par utilisateur */
 .stats-block-oswald { border-top: 3px solid var(--user-oswald); }
-.stats-block-oswald h2 { text-shadow: 0 0 20px rgba(46, 204, 113, 0.5), 0 1px 3px rgba(0,0,0,0.5); }
+.stats-block-oswald h2 { text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+.stats-block-oswald .stat-icon-glow { filter: drop-shadow(0 0 10px rgba(46, 204, 113, 0.8)); }
 .stats-block-alexandre { border-top: 3px solid var(--user-alexandre); }
-.stats-block-alexandre h2 { text-shadow: 0 0 20px rgba(243, 156, 18, 0.5), 0 1px 3px rgba(0,0,0,0.5); }
+.stats-block-alexandre h2 { text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+.stats-block-alexandre .stat-icon-glow { filter: drop-shadow(0 0 10px rgba(243, 156, 18, 0.8)); }
 .stats-block-damien { border-top: 3px solid var(--user-damien); }
-.stats-block-damien h2 { text-shadow: 0 0 20px rgba(52, 152, 219, 0.5), 0 1px 3px rgba(0,0,0,0.5); }
+.stats-block-damien h2 { text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+.stats-block-damien .stat-icon-glow { filter: drop-shadow(0 0 10px rgba(52, 152, 219, 0.8)); }
 
 .stats-block h2 {
     color: #ffffff;
@@ -339,6 +347,11 @@ body {
     font-size: 2rem;
     font-weight: 800;
     color: white;
+    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+    margin-bottom: 5px;
+}
+.stat-value[id$="Total"] {
+    font-weight: 900;
     text-shadow: 
         1px 1px 5px rgba(0, 0, 0, 0.5),
         0 0 15px rgba(0, 0, 0, 0.3);
@@ -354,6 +367,29 @@ body {
 }
 
 /* Challenge Generationen-Duell */
+.challenge-master-bar-wrap {
+    margin: 20px 0 24px;
+}
+.challenge-master-bar {
+    position: relative;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 5px;
+}
+.challenge-master-marker {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    transition: left 0.5s ease;
+    box-shadow: 0 0 12px currentColor;
+}
+.challenge-marker-oswald { background: var(--user-oswald); color: var(--user-oswald); }
+.challenge-marker-alexandre { background: var(--user-alexandre); color: var(--user-alexandre); }
+.challenge-marker-damien { background: var(--user-damien); color: var(--user-damien); }
+
 .challenge-card h2 {
     color: white;
     margin-bottom: 25px;
@@ -403,7 +439,7 @@ body {
 
 .challenge-value {
     font-size: 2rem;
-    font-weight: 800;
+    font-weight: 900;
     color: white;
     text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
 }
@@ -458,7 +494,7 @@ body {
 .world-tour-value {
     color: #ffffff;
     font-size: 1.5rem;
-    font-weight: 800;
+    font-weight: 900;
     margin-bottom: 12px;
 }
 
@@ -493,6 +529,32 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 30px;
     margin-top: 20px;
+}
+
+.history-comparative-bar-wrap {
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+.history-comparative-bar {
+    display: flex;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.15);
+    margin-bottom: 8px;
+}
+.history-bar-segment {
+    transition: width 0.5s ease;
+    min-width: 0;
+}
+.history-bar-oswald { background: var(--user-oswald); }
+.history-bar-alexandre { background: var(--user-alexandre); }
+.history-bar-damien { background: var(--user-damien); }
+.history-comparative-legend {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
 }
 
 .history-three-columns {

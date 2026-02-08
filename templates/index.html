@@ -64,9 +64,9 @@
                     <div class="form-group">
                         <label for="utilisateur">Wer ist gefahren?</label>
                         <select id="utilisateur" name="utilisateur" required>
-                            <option value="Oswald">Oswald</option>
-                            <option value="Alexandre">Alexandre</option>
-                            <option value="Damien">Damien</option>
+                            <option value="Oswald">🌳 Oswald</option>
+                            <option value="Alexandre">🌴 Alexandre</option>
+                            <option value="Damien">⚡ Damien</option>
                         </select>
                     </div>
                 </div>
@@ -88,7 +88,7 @@
         <!-- Blocs Statistiken : Oswald, Alexandre, Damien -->
         <section class="stats-section stats-grid-three" id="statsSection" style="display: none;">
             <div class="glass-card stats-block stats-block-oswald">
-                <h2>Statistiken Oswald</h2>
+                <h2><span class="stat-icon-glow stat-icon-oswald">🌳</span> Statistiken Oswald</h2>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">☀️</div>
@@ -118,7 +118,7 @@
                 </div>
             </div>
             <div class="glass-card stats-block stats-block-alexandre">
-                <h2>Statistiken Alexandre</h2>
+                <h2><span class="stat-icon-glow stat-icon-alexandre">🌴</span> Statistiken Alexandre</h2>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">☀️</div>
@@ -148,7 +148,7 @@
                 </div>
             </div>
             <div class="glass-card stats-block stats-block-damien">
-                <h2>Statistiken Damien</h2>
+                <h2><span class="stat-icon-glow stat-icon-damien">⚡</span> Statistiken Damien</h2>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">☀️</div>
@@ -182,18 +182,25 @@
         <!-- Generationen-Duell -->
         <section class="glass-card challenge-card" id="challengeSection" style="display: none;">
             <h2>🏆 Generationen-Duell: Wer beendet die Weltreise zuerst?</h2>
+            <div class="challenge-master-bar-wrap">
+                <div class="challenge-master-bar" id="challengeMasterBar">
+                    <div class="challenge-master-marker challenge-marker-oswald" id="challengeMarkerOswald" title="Oswald"></div>
+                    <div class="challenge-master-marker challenge-marker-alexandre" id="challengeMarkerAlexandre" title="Alexandre"></div>
+                    <div class="challenge-master-marker challenge-marker-damien" id="challengeMarkerDamien" title="Damien"></div>
+                </div>
+            </div>
             <div class="challenge-content">
                 <div class="challenge-stats challenge-stats-three">
                     <div class="challenge-stat challenge-stat-oswald">
-                        <div class="challenge-label">Oswald</div>
+                        <div class="challenge-label">🌳 Oswald</div>
                         <div class="challenge-value" id="totalOswald">0 km</div>
                     </div>
                     <div class="challenge-stat challenge-stat-alexandre">
-                        <div class="challenge-label">Alexandre</div>
+                        <div class="challenge-label">🌴 Alexandre</div>
                         <div class="challenge-value" id="totalAlexandre">0 km</div>
                     </div>
                     <div class="challenge-stat challenge-stat-damien">
-                        <div class="challenge-label">Damien</div>
+                        <div class="challenge-label">⚡ Damien</div>
                         <div class="challenge-value" id="totalDamien">0 km</div>
                     </div>
                 </div>
@@ -204,7 +211,7 @@
             <h3 class="world-tour-title">🌍 Weltumrundung (40 075 km pro Person)</h3>
             <div class="world-tour-grid world-tour-grid-three">
                 <div class="world-tour-item world-tour-item-oswald">
-                    <div class="world-tour-label">Oswald</div>
+                    <div class="world-tour-label">🌳 Oswald</div>
                     <div class="world-tour-value" id="worldTourOswaldKm">0 km</div>
                     <div class="progress-bar-small">
                         <div class="progress-fill-small" id="worldTourOswaldFill"></div>
@@ -212,7 +219,7 @@
                     <div class="world-tour-pct" id="worldTourOswaldPct">0 %</div>
                 </div>
                 <div class="world-tour-item world-tour-item-alexandre">
-                    <div class="world-tour-label">Alexandre</div>
+                    <div class="world-tour-label">🌴 Alexandre</div>
                     <div class="world-tour-value" id="worldTourAlexandreKm">0 km</div>
                     <div class="progress-bar-small">
                         <div class="progress-fill-small" id="worldTourAlexandreFill"></div>
@@ -220,7 +227,7 @@
                     <div class="world-tour-pct" id="worldTourAlexandrePct">0 %</div>
                 </div>
                 <div class="world-tour-item world-tour-item-damien">
-                    <div class="world-tour-label">Damien</div>
+                    <div class="world-tour-label">⚡ Damien</div>
                     <div class="world-tour-value" id="worldTourDamienKm">0 km</div>
                     <div class="progress-bar-small">
                         <div class="progress-fill-small" id="worldTourDamienFill"></div>
@@ -235,7 +242,7 @@
             <h2>🌍 Mein Weltreise-Fortschritt</h2>
             <div class="progression-three-columns">
                 <div class="progression-column progression-column-oswald">
-                    <h3 class="progression-column-title"><span class="title-globe">🌍</span> Oswald</h3>
+                    <h3 class="progression-column-title"><span class="title-globe">🌍</span> 🌳 Oswald</h3>
                     <div class="progression-globe">
                         <span class="globe-icon">🌍</span>
                         <p class="globe-message" id="globeMessageOswald">Oswald hat 0,0 % der Weltreise geschafft!</p>
@@ -260,7 +267,7 @@
                     </div>
                 </div>
                 <div class="progression-column progression-column-alexandre">
-                    <h3 class="progression-column-title"><span class="title-globe">🌍</span> Alexandre</h3>
+                    <h3 class="progression-column-title"><span class="title-globe">🌍</span> 🌴 Alexandre</h3>
                     <div class="progression-globe">
                         <span class="globe-icon">🌍</span>
                         <p class="globe-message" id="globeMessageAlexandre">Alexandre hat 0,0 % der Weltreise geschafft!</p>
@@ -285,7 +292,7 @@
                     </div>
                 </div>
                 <div class="progression-column progression-column-damien">
-                    <h3 class="progression-column-title"><span class="title-globe">🌍</span> Damien</h3>
+                    <h3 class="progression-column-title"><span class="title-globe">🌍</span> ⚡ Damien</h3>
                     <div class="progression-globe">
                         <span class="globe-icon">🌍</span>
                         <p class="globe-message" id="globeMessageDamien">Damien hat 0,0 % der Weltreise geschafft!</p>
@@ -320,17 +327,25 @@
         <!-- Historie in 3 Spalten -->
         <section class="glass-card history-card" id="historySection" style="display: none;">
             <h2>📜 Letzte Touren</h2>
+            <div class="history-comparative-bar-wrap" title="Position relative sur 40 075 km">
+                <div class="history-comparative-bar" id="historyComparativeBar">
+                    <div class="history-bar-segment history-bar-oswald" id="historyBarOswald" style="width: 0%"></div>
+                    <div class="history-bar-segment history-bar-alexandre" id="historyBarAlexandre" style="width: 0%"></div>
+                    <div class="history-bar-segment history-bar-damien" id="historyBarDamien" style="width: 0%"></div>
+                </div>
+                <p class="history-comparative-legend">🌳 Oswald · 🌴 Alexandre · ⚡ Damien → 40 075 km</p>
+            </div>
             <div class="history-three-columns">
                 <div class="history-column history-column-oswald">
-                    <h3 class="history-column-title">Oswald</h3>
+                    <h3 class="history-column-title">🌳 Oswald</h3>
                     <div class="tours-list" id="toursListOswald"></div>
                 </div>
                 <div class="history-column history-column-alexandre">
-                    <h3 class="history-column-title">Alexandre</h3>
+                    <h3 class="history-column-title">🌴 Alexandre</h3>
                     <div class="tours-list" id="toursListAlexandre"></div>
                 </div>
                 <div class="history-column history-column-damien">
-                    <h3 class="history-column-title">Damien</h3>
+                    <h3 class="history-column-title">⚡ Damien</h3>
                     <div class="tours-list" id="toursListDamien"></div>
                 </div>
             </div>

@@ -71,13 +71,15 @@ async function loadTours() {
         });
         
         document.getElementById('challengeSection').style.display = 'block';
-        updateChallenge(data.challenge || {
+        const ch = data.challenge || {
             total_oswald: 0, total_alexandre: 0, total_damien: 0,
             leader: 'Unentschieden', difference: 0,
             world_tour_oswald: { km: 0, pct: 0, target: 40075 },
             world_tour_alexandre: { km: 0, pct: 0, target: 40075 },
             world_tour_damien: { km: 0, pct: 0, target: 40075 }
-        });
+        };
+        updateChallenge(ch);
+        updateHistoryComparativeBar(ch);
         
         document.getElementById('historySection').style.display = 'block';
         if (data.tours && data.tours.length > 0) {
@@ -111,6 +113,7 @@ async function loadTours() {
             world_tour_alexandre: { km: 0, pct: 0, target: 40075 },
             world_tour_damien: { km: 0, pct: 0, target: 40075 }
         });
+        updateHistoryComparativeBar({ total_oswald: 0, total_alexandre: 0, total_damien: 0 });
         document.getElementById('toursListOswald').innerHTML = '<p class="empty-history">Keine Touren</p>';
         document.getElementById('toursListAlexandre').innerHTML = '<p class="empty-history">Keine Touren</p>';
         document.getElementById('toursListDamien').innerHTML = '<p class="empty-history">Keine Touren</p>';
@@ -153,6 +156,32 @@ function updateChallenge(challenge) {
         message = `${challenge.leader} führt mit ${diff} Vorsprung!`;
     }
     document.getElementById('challengeMessage').textContent = message;
+
+    // Barre Master : position des 3 curseurs sur 40 075 km
+    const TARGET = 40075;
+    const pct = (km) => Math.min(100, (km / TARGET) * 100);
+    document.getElementById('challengeMarkerOswald').style.left = `${pct(challenge.total_oswald || 0)}%`;
+    document.getElementById('challengeMarkerAlexandre').style.left = `${pct(challenge.total_alexandre || 0)}%`;
+    document.getElementById('challengeMarkerDamien').style.left = `${pct(challenge.total_damien || 0)}%`;
+}
+
+// Barre comparative : position relative des 3 utilisateurs sur 40 075 km
+function updateHistoryComparativeBar(challenge) {
+    const TARGET = 40075;
+    const oswald = challenge.total_oswald || 0;
+    const alexandre = challenge.total_alexandre || 0;
+    const damien = challenge.total_damien || 0;
+    const total = oswald + alexandre + damien;
+    let wO = 0, wA = 0, wD = 0;
+    if (total > 0) {
+        const filled = Math.min(100, (total / TARGET) * 100);
+        wO = (oswald / total) * filled;
+        wA = (alexandre / total) * filled;
+        wD = (damien / total) * filled;
+    }
+    document.getElementById('historyBarOswald').style.width = `${wO}%`;
+    document.getElementById('historyBarAlexandre').style.width = `${wA}%`;
+    document.getElementById('historyBarDamien').style.width = `${wD}%`;
 }
 
 // Fortschritt für Oswald, Alexandre und Damien aktualisieren
@@ -237,7 +266,7 @@ function displayTours(tours) {
             <div class="tour-field">
                 <strong>Datum</strong>
                 <span>${tour.Date || ''}</span>
-                <span class="tour-user-pill tour-user-pill-${userKey}" title="${user}">${user}</span>
+                <span class="tour-user-pill tour-user-pill-${userKey}" title="${user}">${ { Oswald: '🌳', Alexandre: '🌴', Damien: '⚡' }[user] } ${user}</span>
                 ${tour.Wetter && String(tour.Wetter).trim() && tour.Wetter !== 'N/A' ? `
                 <span class="tour-wetter">🌤️ ${escapeHtml(String(tour.Wetter).trim())}</span>
                 ` : ''}
