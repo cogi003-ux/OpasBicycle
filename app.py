@@ -818,7 +818,10 @@ def upload_entretien_photo(bike_id):
     size = file.tell()
     file.seek(0)
     if size > MAX_PHOTO_SIZE:
-        return jsonify({'success': False, 'error': f'Datei zu groß (max 5 Mo)'}), 400
+        return jsonify({
+            'success': False,
+            'error': f'Image trop lourde (max 5 Mo). Taille reçue : {size // (1024 * 1024)} Mo'
+        }), 400
     try:
         content_type = file.content_type or 'image/jpeg'
         success, result = upload_entretien_file_db(bike_id, file.read(), file.filename or 'photo.jpg', content_type, field)
@@ -826,9 +829,10 @@ def upload_entretien_photo(bike_id):
             return jsonify({'success': True, 'url': result})
         return jsonify({'success': False, 'error': result}), 500
     except Exception as e:
-        print(f"[ERROR] upload_entretien: {e}")
+        print(f"[ERROR] Erreur upload entretien: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port, debug=os.environ.get('FLASK_DEBUG', 'false').lower() == 'true')
