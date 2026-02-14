@@ -9,7 +9,7 @@ from database import (
     get_all_tours, add_tour as add_tour_db, delete_tour as delete_tour_db,
     upload_photo_to_tour as upload_photo_db,
     get_all_entretien, add_entretien as add_entretien_db, update_entretien as update_entretien_db,
-    delete_entretien as delete_entretien_db, uploagitd_entretien_file as upload_entretien_file_db
+    delete_entretien as delete_entretien_db, upload_entretien_file as upload_entretien_file_db
 )
 
 app = Flask(__name__)
