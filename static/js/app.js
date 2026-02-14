@@ -779,16 +779,30 @@ function getRandomColor() {
 
 // --- Garage (Entretien) ---
 
+function showSection(sectionId) {
+    const trackerEl = document.getElementById('section-tracker');
+    const garageEl = document.getElementById('section-garage');
+    if (!trackerEl || !garageEl) return;
+    trackerEl.classList.remove('section-active');
+    trackerEl.classList.add('section-hidden');
+    garageEl.classList.remove('section-active');
+    garageEl.classList.add('section-hidden');
+    const target = document.getElementById('section-' + sectionId);
+    if (target) {
+        target.classList.remove('section-hidden');
+        target.classList.add('section-active');
+    }
+}
+
 function initNavGarage() {
     const navTracker = document.getElementById('navTracker');
     const navGarage = document.getElementById('navGarage');
-    const mainView = document.getElementById('mainView');
-    const garageView = document.getElementById('garageView');
-    if (!navTracker || !navGarage || !mainView || !garageView) return;
+    const trackerEl = document.getElementById('section-tracker');
+    const garageEl = document.getElementById('section-garage');
+    if (!navTracker || !navGarage || !trackerEl || !garageEl) return;
 
     function showTracker() {
-        mainView.style.display = 'block';
-        garageView.style.display = 'none';
+        showSection('tracker');
         navTracker.classList.add('active');
         navTracker.setAttribute('aria-pressed', 'true');
         navGarage.classList.remove('active');
@@ -796,8 +810,7 @@ function initNavGarage() {
         clearAppBadge();
     }
     function showGarage() {
-        mainView.style.display = 'none';
-        garageView.style.display = 'block';
+        showSection('garage');
         navGarage.classList.add('active');
         navGarage.setAttribute('aria-pressed', 'true');
         navTracker.classList.remove('active');

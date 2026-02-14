@@ -33,8 +33,8 @@
             </nav>
         </header>
 
-        <!-- Vue principale : Tracker -->
-        <div id="mainView" class="view-content">
+        <!-- Vue principale : Tracker (Journal) -->
+        <div id="section-tracker" class="view-content section-active">
 
         <!-- Formulaire -->
         <section class="glass-card form-card">
@@ -372,12 +372,13 @@
         </section>
 
         </div>
-        <!-- Fin mainView -->
+        <!-- Fin section-tracker -->
 
         <!-- Vue Garage (Entretien) -->
-        <div id="garageView" class="view-content" style="display: none;">
+        <div id="section-garage" class="view-content section-hidden">
             <section class="glass-card garage-card">
-                <h2><i data-lucide="wrench" aria-hidden="true"></i> Garage – Entretien</h2>
+                <h2><i data-lucide="wrench" aria-hidden="true"></i> Mon Garage</h2>
+                <p class="garage-subtitle">Entretien et suivi des vélos</p>
                 <div class="garage-gallery" id="garageGallery">
                     <!-- Cartes vélos générées par JS -->
                 </div>
@@ -391,7 +392,7 @@
                 {% endif %}
             </section>
         </div>
-        <!-- Fin garageView -->
+        <!-- Fin section-garage -->
     </div>
 
     <!-- Modale Ajouter / Modifier vélo -->

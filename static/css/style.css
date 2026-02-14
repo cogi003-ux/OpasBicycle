@@ -128,6 +128,10 @@ body {
     text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.4);
 }
 
+/* Sections Tracker / Garage (affichage/masquage) */
+.section-active { display: block !important; }
+.section-hidden { display: none !important; }
+
 /* Navigation principale (Tracker / Garage) */
 .main-nav {
     display: flex;
@@ -1480,13 +1484,14 @@ body {
 /* --- Garage (Entretien) --- */
 .garage-card h2 {
     color: white;
-    margin-bottom: 24px;
+    margin-bottom: 8px;
     font-size: 1.6rem;
     display: flex;
     align-items: center;
     gap: 10px;
 }
 .garage-card h2 svg { width: 1.5rem; height: 1.5rem; }
+.garage-subtitle { color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 20px; }
 .garage-gallery {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
