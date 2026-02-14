@@ -53,16 +53,24 @@ document.addEventListener('DOMContentLoaded', () => {
 async function initializeApp() {
     // Initialiser les icônes Lucide (stats dashboard)
     if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    // Navigation Tracker / Garage – dès le démarrage pour garantir la réactivité des boutons
+    try {
+        initNavGarage();
+    } catch (err) {
+        console.error('initNavGarage:', err);
+    }
     
     // Définir la date d'aujourd'hui par défaut
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('date').value = today;
+    const dateEl = document.getElementById('date');
+    if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
     
     // Charger les données
     await loadTours();
     
     // Écouter le formulaire
-    document.getElementById('tourForm').addEventListener('submit', handleFormSubmit);
+    const tourForm = document.getElementById('tourForm');
+    if (tourForm) tourForm.addEventListener('submit', handleFormSubmit);
     
     // Fermer la modale avec Escape
     document.addEventListener('keydown', (e) => {
@@ -77,7 +85,6 @@ async function initializeApp() {
     initLiveNotificationButton();
 
     // Garage (Entretien)
-    initNavGarage();
     await loadGarageBikes();
 
     // Badge PWA : effacement à l'ouverture (l'utilisateur consulte l'app)
@@ -778,7 +785,8 @@ function initNavGarage() {
     const mainView = document.getElementById('mainView');
     const garageView = document.getElementById('garageView');
     if (!navTracker || !navGarage || !mainView || !garageView) return;
-    navTracker.addEventListener('click', () => {
+
+    function showTracker() {
         mainView.style.display = 'block';
         garageView.style.display = 'none';
         navTracker.classList.add('active');
@@ -786,8 +794,8 @@ function initNavGarage() {
         navGarage.classList.remove('active');
         navGarage.setAttribute('aria-pressed', 'false');
         clearAppBadge();
-    });
-    navGarage.addEventListener('click', () => {
+    }
+    function showGarage() {
         mainView.style.display = 'none';
         garageView.style.display = 'block';
         navGarage.classList.add('active');
@@ -797,7 +805,10 @@ function initNavGarage() {
         clearAppBadge();
         loadGarageBikes();
         if (typeof lucide !== 'undefined') lucide.createIcons();
-    });
+    }
+
+    navTracker.addEventListener('click', (e) => { e.preventDefault(); showTracker(); });
+    navGarage.addEventListener('click', (e) => { e.preventDefault(); showGarage(); });
     const addBtn = document.getElementById('garageAddBtn');
     if (addBtn) addBtn.addEventListener('click', openAddBikeModal);
     const addModalClose = document.getElementById('addBikeModalClose');
