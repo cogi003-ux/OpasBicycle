@@ -21,7 +21,20 @@
         <header class="glass-card header-card">
             <h1 class="title">🚲 Opa's Bicycle</h1>
             <p class="subtitle">Mein Weltreise-Tracker</p>
+            <nav class="main-nav" aria-label="Hauptnavigation">
+                <button type="button" class="nav-btn active" id="navTracker" aria-pressed="true">
+                    <i data-lucide="bike" aria-hidden="true"></i>
+                    <span>Tracker</span>
+                </button>
+                <button type="button" class="nav-btn" id="navGarage" aria-pressed="false" title="Garage / Entretien">
+                    <i data-lucide="wrench" aria-hidden="true"></i>
+                    <span>Garage</span>
+                </button>
+            </nav>
         </header>
+
+        <!-- Vue principale : Tracker -->
+        <div id="mainView" class="view-content">
 
         <!-- Formulaire -->
         <section class="glass-card form-card">
@@ -357,6 +370,76 @@
                 </div>
             </div>
         </section>
+
+        </div>
+        <!-- Fin mainView -->
+
+        <!-- Vue Garage (Entretien) -->
+        <div id="garageView" class="view-content" style="display: none;">
+            <section class="glass-card garage-card">
+                <h2><i data-lucide="wrench" aria-hidden="true"></i> Garage – Entretien</h2>
+                <div class="garage-gallery" id="garageGallery">
+                    <!-- Cartes vélos générées par JS -->
+                </div>
+                {% if use_supabase|default(false) %}
+                <button type="button" class="garage-add-btn" id="garageAddBtn" title="Neues Fahrrad hinzufügen">
+                    <i data-lucide="plus" aria-hidden="true"></i>
+                    <span>Vélo hinzufügen</span>
+                </button>
+                {% else %}
+                <p class="garage-disabled-msg">Entretien nur mit Supabase verfügbar.</p>
+                {% endif %}
+            </section>
+        </div>
+        <!-- Fin garageView -->
+    </div>
+
+    <!-- Modale Ajouter / Modifier vélo -->
+    <div id="addBikeModal" class="modal-overlay" aria-hidden="true" style="display: none;" onclick="if(event.target===this)closeAddBikeModal()">
+        <div class="modal-glass modal-garage" role="dialog" onclick="event.stopPropagation()">
+            <button type="button" class="modal-close" id="addBikeModalClose" aria-label="Schließen">×</button>
+            <h2 id="addBikeModalTitle">Neues Fahrrad</h2>
+            <form id="addBikeForm">
+                <input type="hidden" id="addBikeId" value="">
+                <div class="form-group">
+                    <label for="addBikeName">Name des Fahrrads</label>
+                    <input type="text" id="addBikeName" placeholder="z.B. Cannondale Topstone 2" required>
+                </div>
+                <div class="form-group">
+                    <label for="addBikeUser">Wer fährt es?</label>
+                    <select id="addBikeUser">
+                        <option value="Oswald">🌳 Oswald</option>
+                        <option value="Alexandre">🌴 Alexandre</option>
+                        <option value="Damien">⚡ Damien</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="addBikeKm">Kilometerstand (km)</label>
+                    <input type="number" id="addBikeKm" min="0" step="0.1" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="addBikeDate">Nächstes Service-Datum</label>
+                    <input type="date" id="addBikeDate">
+                </div>
+                <div class="form-group">
+                    <label>Foto des Fahrrads</label>
+                    <input type="file" id="addBikePhoto" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>Foto der Rechnung (Facture)</label>
+                    <input type="file" id="addBikeFacture" accept="image/*,.pdf">
+                </div>
+                <button type="submit" class="btn-primary" id="addBikeSubmitBtn">Speichern</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale facture (image en plein écran) -->
+    <div id="factureModal" class="modal-overlay" aria-hidden="true" onclick="if(event.target===this)closeFactureModal()" style="display: none;">
+        <div class="modal-glass modal-facture" role="dialog" onclick="event.stopPropagation()">
+            <button type="button" class="modal-close" onclick="closeFactureModal()" aria-label="Schließen">×</button>
+            <img id="factureImage" src="" alt="Facture" style="max-width: 100%; max-height: 85vh;">
+        </div>
     </div>
 
     <!-- Notification Toast -->

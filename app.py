@@ -5,7 +5,12 @@ import requests
 import os
 import urllib.parse
 import time
-from database import get_all_tours, add_tour as add_tour_db, delete_tour as delete_tour_db, upload_photo_to_tour as upload_photo_db
+from database import (
+    get_all_tours, add_tour as add_tour_db, delete_tour as delete_tour_db,
+    upload_photo_to_tour as upload_photo_db,
+    get_all_entretien, add_entretien as add_entretien_db, update_entretien as update_entretien_db,
+    delete_entretien as delete_entretien_db, upload_entretien_file as upload_entretien_file_db
+)
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -724,6 +729,106 @@ def delete_tour(tour_id):
             df.to_csv(FICHIER_DATA, index=False)
             return jsonify({'success': True})
         return jsonify({'success': False, 'error': 'Index invalide'}), 400
+
+
+# --- Entretien (Garage) ---
+
+@app.route('/api/entretien', methods=['GET'])
+def get_entretien():
+    """Récupère tous les vélos en entretien + km_from_tours par utilisateur (Supabase uniquement)"""
+    if not USE_SUPABASE:
+        return jsonify({'bikes': [], 'km_from_tours': {}})
+    try:
+        bikes = get_all_entretien()
+        # Sync km: total des sorties par utilisateur
+        km_from_tours = {'Oswald': 0, 'Alexandre': 0, 'Damien': 0}
+        try:
+            df = charger_donnees()
+            if not df.empty and 'Km' in df.columns and 'Utilisateur' in df.columns:
+                for u in ['Oswald', 'Alexandre', 'Damien']:
+                    subset = df[df['Utilisateur'] == u]
+                    km_from_tours[u] = float(subset['Km'].sum()) if not subset.empty else 0
+        except Exception:
+            pass
+        return jsonify({'bikes': bikes, 'km_from_tours': km_from_tours})
+    except Exception as e:
+        print(f"[ERROR] get_entretien: {e}")
+        return jsonify({'bikes': [], 'km_from_tours': {}})
+
+
+@app.route('/api/entretien', methods=['POST'])
+def post_entretien():
+    """Ajoute un nouveau vélo"""
+    if not USE_SUPABASE:
+        return jsonify({'success': False, 'error': 'Entretien nur mit Supabase'}), 400
+    try:
+        data = request.get_json() or {}
+        success, result = add_entretien_db(data)
+        if success:
+            return jsonify({'success': True, 'id': result})
+        return jsonify({'success': False, 'error': str(result)}), 400
+    except Exception as e:
+        print(f"[ERROR] post_entretien: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/entretien/<int:bike_id>', methods=['PUT'])
+def put_entretien(bike_id):
+    """Met à jour un vélo"""
+    if not USE_SUPABASE:
+        return jsonify({'success': False, 'error': 'Entretien nur mit Supabase'}), 400
+    try:
+        data = request.get_json() or {}
+        if update_entretien_db(bike_id, data):
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'error': 'Update fehlgeschlagen'}), 400
+    except Exception as e:
+        print(f"[ERROR] put_entretien: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/entretien/<int:bike_id>', methods=['DELETE'])
+def delete_entretien_route(bike_id):
+    """Supprime un vélo"""
+    if not USE_SUPABASE:
+        return jsonify({'success': False, 'error': 'Entretien nur mit Supabase'}), 400
+    try:
+        if delete_entretien_db(bike_id):
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'error': 'Löschen fehlgeschlagen'}), 400
+    except Exception as e:
+        print(f"[ERROR] delete_entretien: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/entretien/<int:bike_id>/upload', methods=['POST'])
+def upload_entretien_photo(bike_id):
+    """Upload photo vélo ou facture. field=photo_velo|facture en form-data"""
+    if not USE_SUPABASE:
+        return jsonify({'success': False, 'error': 'Entretien nur mit Supabase'}), 400
+    if 'photo' not in request.files and 'file' not in request.files:
+        return jsonify({'success': False, 'error': 'Aucun fichier'}), 400
+    file = request.files.get('photo') or request.files.get('file')
+    if not file or file.filename == '':
+        return jsonify({'success': False, 'error': 'Fichier vide'}), 400
+    field = request.form.get('field', 'photo_velo')
+    if field not in ('photo_velo', 'facture'):
+        field = 'photo_velo'
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > MAX_PHOTO_SIZE:
+        return jsonify({'success': False, 'error': f'Datei zu groß (max 5 Mo)'}), 400
+    try:
+        content_type = file.content_type or 'image/jpeg'
+        success, result = upload_entretien_file_db(bike_id, file.read(), file.filename or 'photo.jpg', content_type, field)
+        if success:
+            return jsonify({'success': True, 'url': result})
+        return jsonify({'success': False, 'error': result}), 500
+    except Exception as e:
+        print(f"[ERROR] upload_entretien: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)

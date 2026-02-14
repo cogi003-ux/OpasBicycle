@@ -4,10 +4,13 @@ Module pour gérer la connexion à Supabase
 from supabase import create_client, Client
 import os
 import uuid
+from datetime import datetime, timezone
 from typing import List, Dict, Optional, Tuple
 
 TABLE_NAME = 'rides'
 PHOTOS_BUCKET = 'tour-photos'
+ENTRETIEN_TABLE = 'entretien'
+ENTRETIEN_BUCKET = 'entretien_velo'
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 def log_debug(message: str):
@@ -344,4 +347,118 @@ def upload_photo_to_tour(tour_id: int, file_content: bytes, filename: str, conte
         return True, public_url
     except Exception as e:
         log_error(f"Erreur lors de l'upload photo pour tour {tour_id}: {e}")
+        return False, str(e)
+
+
+# --- Entretien (Garage) ---
+
+def get_all_entretien() -> List[Dict]:
+    """Récupère tous les enregistrements entretien depuis Supabase"""
+    try:
+        client = get_supabase_client()
+        if not client:
+            return []
+        try:
+            response = client.table(ENTRETIEN_TABLE).select('*').order('id', desc=False).execute()
+            return response.data if response.data else []
+        except Exception as e:
+            error_msg = str(e).lower()
+            if 'relation' in error_msg and 'does not exist' in error_msg:
+                return []
+            log_error(f"Erreur get_all_entretien: {e}")
+            return []
+    except Exception as e:
+        log_error(f"Exception get_all_entretien: {e}")
+        return []
+
+
+def add_entretien(data: Dict) -> Tuple[bool, any]:
+    """Ajoute un vélo dans entretien. Retourne (success, id ou message_erreur)."""
+    client = get_supabase_client()
+    if not client:
+        return False, "Supabase non configuré"
+    try:
+        row = {
+            'utilisateur': str(data.get('utilisateur', 'Oswald')).strip()[:20],
+            'nom_velo': str(data.get('nom_velo', 'Mon vélo')).strip()[:255] or 'Mon vélo',
+            'km_actuel': float(data.get('km_actuel', 0) or 0),
+            'date_prochain_entretien': data.get('date_prochain_entretien') or None,
+            'url_photo_velo': data.get('url_photo_velo') or None,
+            'url_facture': data.get('url_facture') or None,
+        }
+        response = client.table(ENTRETIEN_TABLE).insert(row).execute()
+        if response.data and len(response.data) > 0:
+            return True, response.data[0].get('id')
+        return False, "Aucune donnée retournée"
+    except Exception as e:
+        log_error(f"Erreur add_entretien: {e}")
+        return False, str(e)
+
+
+def update_entretien(entretien_id: int, data: Dict) -> bool:
+    """Met à jour un enregistrement entretien"""
+    client = get_supabase_client()
+    if not client:
+        return False
+    try:
+        updates = {}
+        if 'nom_velo' in data:
+            updates['nom_velo'] = str(data['nom_velo']).strip()[:255] or 'Mon vélo'
+        if 'km_actuel' in data:
+            updates['km_actuel'] = float(data['km_actuel'] or 0)
+        if 'date_prochain_entretien' in data:
+            updates['date_prochain_entretien'] = data['date_prochain_entretien'] or None
+        if 'url_photo_velo' in data:
+            updates['url_photo_velo'] = data['url_photo_velo']
+        if 'url_facture' in data:
+            updates['url_facture'] = data['url_facture']
+        updates['updated_at'] = datetime.now(timezone.utc).isoformat()
+        client.table(ENTRETIEN_TABLE).update(updates).eq('id', entretien_id).execute()
+        return True
+    except Exception as e:
+        log_error(f"Erreur update_entretien: {e}")
+        return False
+
+
+def delete_entretien(entretien_id: int) -> bool:
+    """Supprime un enregistrement entretien"""
+    client = get_supabase_client()
+    if not client:
+        return False
+    try:
+        client.table(ENTRETIEN_TABLE).delete().eq('id', entretien_id).execute()
+        return True
+    except Exception as e:
+        log_error(f"Erreur delete_entretien: {e}")
+        return False
+
+
+def upload_entretien_file(entretien_id: int, file_content: bytes, filename: str, content_type: str, field: str = 'photo_velo') -> Tuple[bool, str]:
+    """
+    Upload vers bucket entretien_velo et met à jour url_photo_velo ou url_facture.
+    field: 'photo_velo' | 'facture'
+    """
+    client = get_supabase_client()
+    if not client:
+        return False, "Supabase non configuré"
+    ext = os.path.splitext(filename)[1].lower() or '.jpg'
+    if ext not in ('.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf'):
+        ext = '.jpg'
+    prefix = 'photo' if field == 'photo_velo' else 'facture'
+    storage_path = f"{entretien_id}/{prefix}_{uuid.uuid4().hex}{ext}"
+    try:
+        client.storage.from_(ENTRETIEN_BUCKET).upload(
+            storage_path,
+            file_content,
+            file_options={"content-type": content_type or "image/jpeg"}
+        )
+        public_url = client.storage.from_(ENTRETIEN_BUCKET).get_public_url(storage_path)
+        col = 'url_photo_velo' if field == 'photo_velo' else 'url_facture'
+        client.table(ENTRETIEN_TABLE).update({
+            col: public_url,
+            'updated_at': datetime.now(timezone.utc).isoformat()
+        }).eq('id', entretien_id).execute()
+        return True, public_url
+    except Exception as e:
+        log_error(f"Erreur upload_entretien_file: {e}")
         return False, str(e)

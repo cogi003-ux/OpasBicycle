@@ -24,6 +24,8 @@ Ce guide vous explique comment configurer Supabase pour que les données de Opa 
 4. Cliquez sur **Run** (ou appuyez sur Ctrl+Enter)
 5. Vous devriez voir "Success. No rows returned"
 
+**Optionnel – Entretien (Garage) :** Pour activer la vue Garage, exécutez aussi `supabase_entretien.sql`, puis créez le bucket **entretien_velo** dans Storage → New bucket (public).
+
 ### 3. Récupérer les clés API
 
 1. Dans votre projet Supabase, allez dans **Settings** (⚙️) → **API**

@@ -128,6 +128,42 @@ body {
     text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.4);
 }
 
+/* Navigation principale (Tracker / Garage) */
+.main-nav {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+}
+.nav-btn.active {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+.nav-btn svg {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
 /* Form */
 .form-card h2 {
     color: white;
@@ -1438,6 +1474,193 @@ body {
     .title {
         font-size: 2rem;
     }
+}
+
+/* --- Garage (Entretien) --- */
+.garage-card h2 {
+    color: white;
+    margin-bottom: 24px;
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.garage-card h2 svg { width: 1.5rem; height: 1.5rem; }
+.garage-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+}
+.garage-card-item {
+    position: relative;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.garage-card-edit-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+.garage-card-edit-btn:hover { background: rgba(0, 0, 0, 0.7); }
+.garage-card-edit-btn svg { width: 1rem; height: 1rem; }
+.garage-card-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+.garage-card-image-wrap {
+    position: relative;
+    aspect-ratio: 16/10;
+    background: rgba(0, 0, 0, 0.3);
+}
+.garage-card-image {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+}
+.garage-card-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 4rem;
+    opacity: 0.6;
+}
+.garage-card-banner {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 14px 16px;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, transparent 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+.garage-card-info { padding: 16px; }
+.garage-card-km-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+.garage-card-km { color: rgba(255,255,255,0.9); margin: 0; }
+.garage-km-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.garage-km-inc, .garage-km-sync {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.garage-km-inc:hover, .garage-km-sync:hover { background: rgba(255, 255, 255, 0.3); }
+.garage-km-sync { background: rgba(46, 204, 113, 0.3); border-color: rgba(46, 204, 113, 0.5); }
+.garage-card-km-tours {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.65);
+    margin: 0 0 8px 0;
+}
+.garage-card-date {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+}
+.garage-alert-soon { color: #f39c12 !important; }
+.garage-alert-overdue { color: #e74c3c !important; }
+.garage-btn-facture {
+    display: inline-block;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 10px;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.garage-btn-facture:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+.garage-card-actions { margin-top: 8px; }
+.garage-btn-add-facture {
+    display: inline-block;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px dashed rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.9);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.garage-btn-add-facture:hover { background: rgba(255, 255, 255, 0.25); }
+.garage-add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px dashed rgba(255, 255, 255, 0.4);
+    border-radius: 16px;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.garage-add-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+.garage-add-btn svg { width: 1.5rem; height: 1.5rem; }
+.garage-empty, .garage-disabled-msg {
+    color: rgba(255,255,255,0.7);
+    text-align: center;
+    padding: 40px 20px;
+}
+.modal-garage h2 { margin-bottom: 20px; color: white; }
+.modal-garage .form-group { margin-bottom: 16px; }
+.modal-facture { max-width: 90vw; }
+.modal-facture img { border-radius: 8px; }
+
+@media (max-width: 768px) {
+    .garage-gallery { grid-template-columns: 1fr; }
+    .main-nav { margin-top: 14px; gap: 8px; }
+    .nav-btn { padding: 10px 16px; font-size: 0.9rem; }
+    .garage-card-km-row { flex-direction: column; align-items: flex-start; }
+    .garage-km-inc, .garage-km-sync { min-height: 44px; padding: 10px 14px; font-size: 0.85rem; }
+    .garage-card-edit-btn { width: 44px; height: 44px; top: 8px; right: 8px; }
 }
 
 /* Loading Animation */

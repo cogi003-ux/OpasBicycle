@@ -1,5 +1,42 @@
 // Configuration
 const API_BASE = '';
+const BADGE_STORAGE_KEY = 'opas_bicycle_badge_count';
+
+// Badge PWA (compatible navigateurs sans support)
+function setAppBadgeSafe(count) {
+    try {
+        if (typeof navigator !== 'undefined' && typeof navigator.setAppBadge === 'function') {
+            navigator.setAppBadge(count).catch(() => {});
+        }
+    } catch (_) {}
+}
+function clearAppBadgeSafe() {
+    try {
+        if (typeof navigator !== 'undefined' && typeof navigator.clearAppBadge === 'function') {
+            navigator.clearAppBadge().catch(() => {});
+        }
+    } catch (_) {}
+}
+function getStoredBadgeCount() {
+    try {
+        const n = parseInt(localStorage.getItem(BADGE_STORAGE_KEY) || '0', 10);
+        return isNaN(n) ? 0 : Math.max(0, n);
+    } catch (_) { return 0; }
+}
+function setStoredBadgeCount(n) {
+    try {
+        localStorage.setItem(BADGE_STORAGE_KEY, String(Math.max(0, n)));
+    } catch (_) {}
+}
+function incrementAppBadge() {
+    const count = getStoredBadgeCount() + 1;
+    setStoredBadgeCount(count);
+    setAppBadgeSafe(count);
+}
+function clearAppBadge() {
+    setStoredBadgeCount(0);
+    clearAppBadgeSafe();
+}
 
 // État de l'application
 let toursData = {
@@ -29,14 +66,22 @@ async function initializeApp() {
     
     // Fermer la modale avec Escape
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && document.getElementById('tourModal').classList.contains('modal-open')) {
-            closeTourModal();
-        }
+        if (e.key !== 'Escape') return;
+        if (document.getElementById('tourModal').classList.contains('modal-open')) closeTourModal();
+        else if (document.getElementById('addBikeModal').style.display === 'flex') closeAddBikeModal();
+        else if (document.getElementById('factureModal').style.display === 'flex') closeFactureModal();
     });
 
     // Notification Live : vérification toutes les 60 s (nouveau code ou nouvelles données)
     startLiveNotificationCheck();
     initLiveNotificationButton();
+
+    // Garage (Entretien)
+    initNavGarage();
+    await loadGarageBikes();
+
+    // Badge PWA : effacement à l'ouverture (l'utilisateur consulte l'app)
+    clearAppBadge();
 }
 
 let lastKnownVersion = null;
@@ -84,6 +129,7 @@ function checkForUpdates() {
         }
         if (hasNew) {
             showLiveNotificationBanner();
+            incrementAppBadge();
         }
     })();
 }
@@ -101,7 +147,10 @@ function hideLiveNotificationBanner() {
 function initLiveNotificationButton() {
     const btn = document.getElementById('liveNotificationBtn');
     if (btn) {
-        btn.addEventListener('click', () => window.location.reload(true));
+        btn.addEventListener('click', () => {
+            clearAppBadge();
+            window.location.reload(true);
+        });
     }
 }
 
@@ -594,7 +643,7 @@ async function handleFormSubmit(e) {
         
         if (data.success) {
             showToast('Tour gespeichert! 🎉', 'success');
-            
+            incrementAppBadge(); // Nouvelle sortie → badge pour autres appareils / onglets
             // Réinitialiser le formulaire
             document.getElementById('tourForm').reset();
             document.getElementById('date').value = new Date().toISOString().split('T')[0];
@@ -719,4 +768,312 @@ function createConfetti() {
 function getRandomColor() {
     const colors = ['#4caf50', '#2196f3', '#ff9800', '#f44336', '#9c27b0', '#00bcd4'];
     return colors[Math.floor(Math.random() * colors.length)];
+}
+
+// --- Garage (Entretien) ---
+
+function initNavGarage() {
+    const navTracker = document.getElementById('navTracker');
+    const navGarage = document.getElementById('navGarage');
+    const mainView = document.getElementById('mainView');
+    const garageView = document.getElementById('garageView');
+    if (!navTracker || !navGarage || !mainView || !garageView) return;
+    navTracker.addEventListener('click', () => {
+        mainView.style.display = 'block';
+        garageView.style.display = 'none';
+        navTracker.classList.add('active');
+        navTracker.setAttribute('aria-pressed', 'true');
+        navGarage.classList.remove('active');
+        navGarage.setAttribute('aria-pressed', 'false');
+        clearAppBadge();
+    });
+    navGarage.addEventListener('click', () => {
+        mainView.style.display = 'none';
+        garageView.style.display = 'block';
+        navGarage.classList.add('active');
+        navGarage.setAttribute('aria-pressed', 'true');
+        navTracker.classList.remove('active');
+        navTracker.setAttribute('aria-pressed', 'false');
+        clearAppBadge();
+        loadGarageBikes();
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+    const addBtn = document.getElementById('garageAddBtn');
+    if (addBtn) addBtn.addEventListener('click', openAddBikeModal);
+    const addModalClose = document.getElementById('addBikeModalClose');
+    if (addModalClose) addModalClose.addEventListener('click', closeAddBikeModal);
+    const addForm = document.getElementById('addBikeForm');
+    if (addForm) addForm.addEventListener('submit', handleAddBikeSubmit);
+}
+
+let garageKmFromTours = { Oswald: 0, Alexandre: 0, Damien: 0 };
+
+async function loadGarageBikes() {
+    const gallery = document.getElementById('garageGallery');
+    if (!gallery) return;
+    try {
+        const res = await fetch(`${API_BASE}/api/entretien`);
+        const data = await res.json();
+        garageKmFromTours = data.km_from_tours || garageKmFromTours;
+        renderGarageCards(data.bikes || []);
+    } catch (e) {
+        console.error('Garage load:', e);
+        gallery.innerHTML = '<p class="garage-empty">Fehler beim Laden.</p>';
+    }
+}
+
+function renderGarageCards(bikes) {
+    const gallery = document.getElementById('garageGallery');
+    if (!gallery) return;
+    const userColors = { Oswald: 'var(--user-oswald)', Alexandre: 'var(--user-alexandre)', Damien: 'var(--user-damien)' };
+    const userEmoji = { Oswald: '🌳', Alexandre: '🌴', Damien: '⚡' };
+    const DAYS_ALERT = 30;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    function isMaintenanceSoon(dateStr) {
+        if (!dateStr) return false;
+        const d = new Date(dateStr);
+        d.setHours(0, 0, 0, 0);
+        const diff = (d - today) / (1000 * 60 * 60 * 24);
+        return diff >= 0 && diff <= DAYS_ALERT;
+    }
+    function isMaintenanceOverdue(dateStr) {
+        if (!dateStr) return false;
+        const d = new Date(dateStr);
+        d.setHours(0, 0, 0, 0);
+        return d < today;
+    }
+    function formatDateDE(str) {
+        if (!str) return '—';
+        const d = new Date(str);
+        return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+    if (bikes.length === 0) {
+        gallery.innerHTML = '<p class="garage-empty">Noch keine Fahrräder eingetragen.</p>';
+        return;
+    }
+    gallery.innerHTML = bikes.map(b => {
+        const color = userColors[b.utilisateur] || 'rgba(255,255,255,0.2)';
+        const emoji = userEmoji[b.utilisateur] || '🚲';
+        const imgUrl = b.url_photo_velo || '';
+        const hasFacture = !!b.url_facture;
+        const soon = isMaintenanceSoon(b.date_prochain_entretien);
+        const overdue = isMaintenanceOverdue(b.date_prochain_entretien);
+        const alertClass = overdue ? 'garage-alert-overdue' : (soon ? 'garage-alert-soon' : '');
+        const kmFromTours = garageKmFromTours[b.utilisateur] || 0;
+        const totalWithTours = (b.km_actuel || 0) + kmFromTours;
+        return `
+        <div class="garage-card-item" data-id="${b.id}" style="--accent: ${color}">
+            <button type="button" class="garage-card-edit-btn" data-id="${b.id}" data-name="${escapeHtml(b.nom_velo || '').replace(/"/g, '&quot;')}" data-user="${b.utilisateur || 'Oswald'}" data-km="${b.km_actuel || 0}" data-date="${b.date_prochain_entretien || ''}" title="Bearbeiten" aria-label="Bearbeiten">
+                <i data-lucide="pencil" aria-hidden="true"></i>
+            </button>
+            <div class="garage-card-image-wrap">
+                <div class="garage-card-image" style="background-image: url('${imgUrl || ''}')">
+                    ${!imgUrl ? '<span class="garage-card-placeholder">🚲</span>' : ''}
+                </div>
+                <div class="garage-card-banner">${emoji} ${escapeHtml(b.nom_velo || 'Mon vélo')}</div>
+            </div>
+            <div class="garage-card-info">
+                <div class="garage-card-km-row">
+                    <p class="garage-card-km"><strong>${formatDistance(b.km_actuel || 0)}</strong> gesamt</p>
+                    <div class="garage-km-actions">
+                        <button type="button" class="garage-km-inc" data-id="${b.id}" data-delta="10" title="+10 km">+10</button>
+                        <button type="button" class="garage-km-inc" data-id="${b.id}" data-delta="50" title="+50 km">+50</button>
+                        ${kmFromTours > 0 ? `<button type="button" class="garage-km-sync" data-id="${b.id}" data-user="${b.utilisateur}" title="Sync mit Touren (+${formatNumber(kmFromTours, 0)} km)">Sync</button>` : ''}
+                    </div>
+                </div>
+                ${kmFromTours > 0 ? `<p class="garage-card-km-tours">${formatDistance(kmFromTours)} aus Touren → ${formatDistance(totalWithTours)} total</p>` : ''}
+                <p class="garage-card-date ${alertClass}">
+                    Nächstes Service: ${formatDateDE(b.date_prochain_entretien)}
+                    ${overdue ? ' (Überfällig!)' : ''}${soon && !overdue ? ' (Bald)' : ''}
+                </p>
+                <div class="garage-card-actions">
+                    ${hasFacture ? `<button type="button" class="garage-btn-facture" data-url="${escapeHtml(b.url_facture)}">Facture</button>` : `<label class="garage-btn-add-facture"><input type="file" accept="image/*,.pdf" data-id="${b.id}" style="display:none">+ Facture</label>`}
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+    gallery.querySelectorAll('.garage-btn-facture').forEach(btn => {
+        btn.addEventListener('click', () => openFactureModal(btn.dataset.url));
+    });
+    gallery.querySelectorAll('.garage-card-edit-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const bike = bikes.find(x => x.id === parseInt(btn.dataset.id, 10));
+            if (bike) openEditBikeModal(bike);
+        });
+    });
+    gallery.querySelectorAll('.garage-km-inc').forEach(btn => {
+        btn.addEventListener('click', () => incrementBikeKm(parseInt(btn.dataset.id, 10), parseFloat(btn.dataset.delta, 10)));
+    });
+    gallery.querySelectorAll('.garage-km-sync').forEach(btn => {
+        btn.addEventListener('click', () => syncBikeKm(parseInt(btn.dataset.id, 10), btn.dataset.user));
+    });
+    gallery.querySelectorAll('.garage-btn-add-facture input').forEach(inp => {
+        inp.addEventListener('change', (e) => { if (e.target.files[0]) uploadBikeFacture(parseInt(inp.dataset.id, 10), e.target.files[0]); });
+    });
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function openAddBikeModal() {
+    document.getElementById('addBikeModalTitle').textContent = 'Neues Fahrrad';
+    document.getElementById('addBikeSubmitBtn').textContent = 'Speichern';
+    document.getElementById('addBikeId').value = '';
+    document.getElementById('addBikeName').value = '';
+    document.getElementById('addBikeUser').value = 'Oswald';
+    document.getElementById('addBikeKm').value = '0';
+    document.getElementById('addBikeDate').value = '';
+    document.getElementById('addBikePhoto').value = '';
+    document.getElementById('addBikeFacture').value = '';
+    const m = document.getElementById('addBikeModal');
+    if (m) { m.style.display = 'flex'; m.classList.add('modal-open'); m.setAttribute('aria-hidden', 'false'); }
+}
+
+function openEditBikeModal(bike) {
+    document.getElementById('addBikeModalTitle').textContent = 'Fahrrad bearbeiten';
+    document.getElementById('addBikeSubmitBtn').textContent = 'Aktualisieren';
+    document.getElementById('addBikeId').value = String(bike.id || '');
+    document.getElementById('addBikeName').value = bike.nom_velo || '';
+    document.getElementById('addBikeUser').value = bike.utilisateur || 'Oswald';
+    document.getElementById('addBikeKm').value = String(bike.km_actuel || 0);
+    document.getElementById('addBikeDate').value = bike.date_prochain_entretien || '';
+    document.getElementById('addBikePhoto').value = '';
+    document.getElementById('addBikeFacture').value = '';
+    const m = document.getElementById('addBikeModal');
+    if (m) { m.style.display = 'flex'; m.classList.add('modal-open'); m.setAttribute('aria-hidden', 'false'); }
+}
+
+function closeAddBikeModal() {
+    const m = document.getElementById('addBikeModal');
+    if (m) { m.classList.remove('modal-open'); m.style.display = 'none'; m.setAttribute('aria-hidden', 'true'); }
+}
+
+async function handleAddBikeSubmit(e) {
+    e.preventDefault();
+    const bikeId = document.getElementById('addBikeId').value.trim();
+    const isEdit = !!bikeId;
+    const name = document.getElementById('addBikeName').value.trim() || 'Mon vélo';
+    const user = document.getElementById('addBikeUser').value;
+    const km = parseFloat(document.getElementById('addBikeKm').value) || 0;
+    const date = document.getElementById('addBikeDate').value || null;
+    const photoInput = document.getElementById('addBikePhoto');
+    const factureInput = document.getElementById('addBikeFacture');
+    try {
+        if (isEdit) {
+            const res = await fetch(`${API_BASE}/api/entretien/${bikeId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nom_velo: name, utilisateur: user, km_actuel: km, date_prochain_entretien: date || null })
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || 'Fehler');
+            const id = parseInt(bikeId, 10);
+            if (photoInput.files && photoInput.files[0]) {
+                const fd = new FormData();
+                fd.append('photo', photoInput.files[0]);
+                fd.append('field', 'photo_velo');
+                await fetch(`${API_BASE}/api/entretien/${id}/upload`, { method: 'POST', body: fd });
+            }
+            if (factureInput.files && factureInput.files[0]) {
+                const fd = new FormData();
+                fd.append('photo', factureInput.files[0]);
+                fd.append('field', 'facture');
+                await fetch(`${API_BASE}/api/entretien/${id}/upload`, { method: 'POST', body: fd });
+            }
+            showToast('Fahrrad aktualisiert! 🚲', 'success');
+            incrementAppBadge();
+        } else {
+            const res = await fetch(`${API_BASE}/api/entretien`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nom_velo: name, utilisateur: user, km_actuel: km, date_prochain_entretien: date })
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || 'Fehler');
+            const id = data.id;
+            if (photoInput.files && photoInput.files[0]) {
+                const fd = new FormData();
+                fd.append('photo', photoInput.files[0]);
+                fd.append('field', 'photo_velo');
+                await fetch(`${API_BASE}/api/entretien/${id}/upload`, { method: 'POST', body: fd });
+            }
+            if (factureInput.files && factureInput.files[0]) {
+                const fd = new FormData();
+                fd.append('photo', factureInput.files[0]);
+                fd.append('field', 'facture');
+                await fetch(`${API_BASE}/api/entretien/${id}/upload`, { method: 'POST', body: fd });
+            }
+            showToast('Fahrrad hinzugefügt! 🚲', 'success');
+            incrementAppBadge();
+        }
+        closeAddBikeModal();
+        await loadGarageBikes();
+    } catch (err) {
+        showToast(err.message || 'Fehler beim Speichern', 'error');
+    }
+}
+
+async function incrementBikeKm(bikeId, delta) {
+    try {
+        const bikes = (await (await fetch(`${API_BASE}/api/entretien`)).json()).bikes || [];
+        const b = bikes.find(x => x.id === bikeId);
+        if (!b) return;
+        const newKm = (b.km_actuel || 0) + delta;
+        const res = await fetch(`${API_BASE}/api/entretien/${bikeId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ km_actuel: newKm })
+        });
+        const data = await res.json();
+        if (data.success) { showToast(`+${delta} km`, 'success'); incrementAppBadge(); await loadGarageBikes(); }
+        else throw new Error(data.error);
+    } catch (e) { showToast('Fehler', 'error'); }
+}
+
+async function syncBikeKm(bikeId, user) {
+    const kmFromTours = garageKmFromTours[user] || 0;
+    if (kmFromTours <= 0) return;
+    try {
+        const bikes = (await (await fetch(`${API_BASE}/api/entretien`)).json()).bikes || [];
+        const b = bikes.find(x => x.id === bikeId);
+        if (!b) return;
+        const newKm = (b.km_actuel || 0) + kmFromTours;
+        const res = await fetch(`${API_BASE}/api/entretien/${bikeId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ km_actuel: newKm })
+        });
+        const data = await res.json();
+        if (data.success) { showToast(`+${formatNumber(kmFromTours, 0)} km (Touren)`, 'success'); incrementAppBadge(); await loadGarageBikes(); }
+        else throw new Error(data.error);
+    } catch (e) { showToast('Fehler', 'error'); }
+}
+
+async function uploadBikeFacture(bikeId, file) {
+    try {
+        const fd = new FormData();
+        fd.append('photo', file);
+        fd.append('field', 'facture');
+        const res = await fetch(`${API_BASE}/api/entretien/${bikeId}/upload`, { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.success) { showToast('Facture hinzugefügt', 'success'); incrementAppBadge(); await loadGarageBikes(); }
+        else throw new Error(data.error);
+    } catch (e) { showToast('Fehler beim Hochladen', 'error'); }
+}
+
+function openFactureModal(url) {
+    const img = document.getElementById('factureImage');
+    const m = document.getElementById('factureModal');
+    if (img && m && url) {
+        img.src = url;
+        m.style.display = 'flex';
+        m.classList.add('modal-open');
+        m.setAttribute('aria-hidden', 'false');
+    }
+}
+
+function closeFactureModal() {
+    const m = document.getElementById('factureModal');
+    const img = document.getElementById('factureImage');
+    if (m) { m.classList.remove('modal-open'); m.style.display = 'none'; m.setAttribute('aria-hidden', 'true'); }
+    if (img) img.src = '';
 }
