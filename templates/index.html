@@ -85,6 +85,7 @@
                         <label for="utilisateur">Wer ist gefahren?</label>
                         <select id="utilisateur" name="utilisateur" required>
                             <option value="Oswald">🌳 Oswald</option>
+                            <option value="Titine">🌸 Titine</option>
                             <option value="Alexandre">🌴 Alexandre</option>
                             <option value="Damien">⚡ Damien</option>
                         </select>
@@ -105,8 +106,8 @@
             </form>
         </section>
 
-        <!-- Blocs Statistiken : Oswald, Alexandre, Damien -->
-        <section class="stats-section stats-grid-three" id="statsSection" style="display: none;">
+        <!-- Blocs Statistiken : Oswald, Titine, Alexandre, Damien -->
+        <section class="stats-section stats-grid-four" id="statsSection" style="display: none;">
             <div class="glass-card stats-block stats-block-oswald">
                 <h2><span class="stat-icon-glow stat-icon-oswald">🌳</span> Statistiken Oswald</h2>
                 <div class="stats-grid">
@@ -133,6 +134,36 @@
                     <div class="stat-card">
                         <div class="stat-icon"><i data-lucide="globe" aria-hidden="true"></i></div>
                         <div class="stat-value" id="statOswaldTotal">0 km</div>
+                        <div class="stat-label">Gesamt</div>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-card stats-block stats-block-titine">
+                <h2><span class="stat-icon-glow stat-icon-titine">🌸</span> Statistiken Titine</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i data-lucide="sun" aria-hidden="true"></i></div>
+                        <div class="stat-value" id="statTitineAujourdhui">0 km</div>
+                        <div class="stat-label">Heute</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i data-lucide="calendar" aria-hidden="true"></i></div>
+                        <div class="stat-value" id="statTitineSemaine">0 km</div>
+                        <div class="stat-label">Woche</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i data-lucide="layout-dashboard" aria-hidden="true"></i></div>
+                        <div class="stat-value" id="statTitineMois">0 km</div>
+                        <div class="stat-label">Monat</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i data-lucide="trophy" aria-hidden="true"></i></div>
+                        <div class="stat-value" id="statTitineAnnee">0 km</div>
+                        <div class="stat-label">Jahr</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i data-lucide="globe" aria-hidden="true"></i></div>
+                        <div class="stat-value" id="statTitineTotal">0 km</div>
                         <div class="stat-label">Gesamt</div>
                     </div>
                 </div>
@@ -205,15 +236,20 @@
             <div class="challenge-master-bar-wrap">
                 <div class="challenge-master-bar" id="challengeMasterBar">
                     <div class="challenge-master-marker challenge-marker-oswald" id="challengeMarkerOswald" title="Oswald"></div>
+                    <div class="challenge-master-marker challenge-marker-titine" id="challengeMarkerTitine" title="Titine"></div>
                     <div class="challenge-master-marker challenge-marker-alexandre" id="challengeMarkerAlexandre" title="Alexandre"></div>
                     <div class="challenge-master-marker challenge-marker-damien" id="challengeMarkerDamien" title="Damien"></div>
                 </div>
             </div>
             <div class="challenge-content">
-                <div class="challenge-stats challenge-stats-three">
+                <div class="challenge-stats challenge-stats-four">
                     <div class="challenge-stat challenge-stat-oswald">
                         <div class="challenge-label">🌳 Oswald</div>
                         <div class="challenge-value" id="totalOswald">0 km</div>
+                    </div>
+                    <div class="challenge-stat challenge-stat-titine">
+                        <div class="challenge-label">🌸 Titine</div>
+                        <div class="challenge-value" id="totalTitine">0 km</div>
                     </div>
                     <div class="challenge-stat challenge-stat-alexandre">
                         <div class="challenge-label">🌴 Alexandre</div>
@@ -229,7 +265,7 @@
                 </div>
             </div>
             <h3 class="world-tour-title">🌍 Weltumrundung (40 075 km pro Person)</h3>
-            <div class="world-tour-grid world-tour-grid-three">
+            <div class="world-tour-grid world-tour-grid-four">
                 <div class="world-tour-item world-tour-item-oswald">
                     <div class="world-tour-label">🌳 Oswald</div>
                     <div class="world-tour-value" id="worldTourOswaldKm">0 km</div>
@@ -237,6 +273,14 @@
                         <div class="progress-fill-small" id="worldTourOswaldFill"></div>
                     </div>
                     <div class="world-tour-pct" id="worldTourOswaldPct">0 %</div>
+                </div>
+                <div class="world-tour-item world-tour-item-titine">
+                    <div class="world-tour-label">🌸 Titine</div>
+                    <div class="world-tour-value" id="worldTourTitineKm">0 km</div>
+                    <div class="progress-bar-small">
+                        <div class="progress-fill-small" id="worldTourTitineFill"></div>
+                    </div>
+                    <div class="world-tour-pct" id="worldTourTitinePct">0 %</div>
                 </div>
                 <div class="world-tour-item world-tour-item-alexandre">
                     <div class="world-tour-label">🌴 Alexandre</div>
@@ -257,10 +301,10 @@
             </div>
         </section>
 
-        <!-- Progression: Drei Spalten (Oswald | Alexandre | Damien) -->
+        <!-- Progression: Vier Spalten (Oswald | Titine | Alexandre | Damien) -->
         <section class="glass-card progression-card" id="progressionSection" style="display: none;">
             <h2>🌍 Mein Weltreise-Fortschritt</h2>
-            <div class="progression-three-columns">
+            <div class="progression-four-columns">
                 <div class="progression-column progression-column-oswald">
                     <h3 class="progression-column-title"><span class="title-globe">🌍</span> 🌳 Oswald</h3>
                     <div class="progression-globe">
@@ -284,6 +328,31 @@
                             </div>
                         </div>
                         <div class="progress-text" id="progressTextOswald">0 %</div>
+                    </div>
+                </div>
+                <div class="progression-column progression-column-titine">
+                    <h3 class="progression-column-title"><span class="title-globe">🌍</span> 🌸 Titine</h3>
+                    <div class="progression-globe">
+                        <span class="globe-icon">🌍</span>
+                        <p class="globe-message" id="globeMessageTitine">Titine hat 0,0 % der Weltreise geschafft!</p>
+                    </div>
+                    <div class="current-location">
+                        <p class="location-label">Aktueller Zwischenstopp:</p>
+                        <h3 class="location-name" id="villeActuelleTitine">🏠 Kettenis</h3>
+                    </div>
+                    <div class="next-location">
+                        <p class="location-label">Nächstes Ziel:</p>
+                        <p class="next-city" id="prochaineVilleTitine">🇧🇪 Liège</p>
+                        <p class="km-restants">Noch <span id="kmRestantsTitine">30,0 km</span></p>
+                    </div>
+                    <div class="progress-container">
+                        <p class="progress-bar-label" id="progressBarLabelTitine">Aktuelle Etappe: Auf dem Weg nach Liège</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFillTitine">
+                                <span class="progress-traveler">🚲</span>
+                            </div>
+                        </div>
+                        <div class="progress-text" id="progressTextTitine">0 %</div>
                     </div>
                 </div>
                 <div class="progression-column progression-column-alexandre">
@@ -344,28 +413,35 @@
             </div>
         </section>
 
-        <!-- Historie in 3 Spalten -->
+        <!-- Historie mit Tabs (Oswald | Titine | Alexandre | Damien) -->
         <section class="glass-card history-card" id="historySection" style="display: none;">
             <h2>📜 Letzte Touren</h2>
             <div class="history-comparative-bar-wrap" title="Position relative sur 40 075 km">
                 <div class="history-comparative-bar" id="historyComparativeBar">
                     <div class="history-bar-segment history-bar-oswald" id="historyBarOswald" style="width: 0%"></div>
+                    <div class="history-bar-segment history-bar-titine" id="historyBarTitine" style="width: 0%"></div>
                     <div class="history-bar-segment history-bar-alexandre" id="historyBarAlexandre" style="width: 0%"></div>
                     <div class="history-bar-segment history-bar-damien" id="historyBarDamien" style="width: 0%"></div>
                 </div>
-                <p class="history-comparative-legend">🌳 Oswald · 🌴 Alexandre · ⚡ Damien → 40 075 km</p>
+                <p class="history-comparative-legend">🌳 Oswald · 🌸 Titine · 🌴 Alexandre · ⚡ Damien → 40 075 km</p>
             </div>
-            <div class="history-three-columns">
-                <div class="history-column history-column-oswald">
-                    <h3 class="history-column-title">🌳 Oswald</h3>
+            <div class="history-tabs">
+                <button type="button" class="history-tab-btn history-tab-active" data-user="Oswald" aria-pressed="true">Oswald 🌳</button>
+                <button type="button" class="history-tab-btn" data-user="Titine" aria-pressed="false">Titine 🌸</button>
+                <button type="button" class="history-tab-btn" data-user="Alexandre" aria-pressed="false">Alexandre 🌴</button>
+                <button type="button" class="history-tab-btn" data-user="Damien" aria-pressed="false">Damien ⚡</button>
+            </div>
+            <div class="history-tab-panels">
+                <div class="history-tab-panel history-tab-active" id="historyPanelOswald">
                     <div class="tours-list" id="toursListOswald"></div>
                 </div>
-                <div class="history-column history-column-alexandre">
-                    <h3 class="history-column-title">🌴 Alexandre</h3>
+                <div class="history-tab-panel history-tab-hidden" id="historyPanelTitine">
+                    <div class="tours-list" id="toursListTitine"></div>
+                </div>
+                <div class="history-tab-panel history-tab-hidden" id="historyPanelAlexandre">
                     <div class="tours-list" id="toursListAlexandre"></div>
                 </div>
-                <div class="history-column history-column-damien">
-                    <h3 class="history-column-title">⚡ Damien</h3>
+                <div class="history-tab-panel history-tab-hidden" id="historyPanelDamien">
                     <div class="tours-list" id="toursListDamien"></div>
                 </div>
             </div>
@@ -410,6 +486,7 @@
                     <label for="addBikeUser">Wer fährt es?</label>
                     <select id="addBikeUser">
                         <option value="Oswald">🌳 Oswald</option>
+                        <option value="Titine">🌸 Titine</option>
                         <option value="Alexandre">🌴 Alexandre</option>
                         <option value="Damien">⚡ Damien</option>
                     </select>

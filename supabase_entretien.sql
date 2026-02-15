@@ -4,7 +4,7 @@
 
 CREATE TABLE IF NOT EXISTS entretien (
     id SERIAL PRIMARY KEY,
-    utilisateur VARCHAR(20) NOT NULL DEFAULT 'Oswald' CHECK (utilisateur IN ('Oswald', 'Alexandre', 'Damien')),
+    utilisateur VARCHAR(20) NOT NULL DEFAULT 'Oswald' CHECK (utilisateur IN ('Oswald', 'Titine', 'Alexandre', 'Damien')),
     nom_velo VARCHAR(255) NOT NULL DEFAULT 'Mon vélo',
     km_actuel DECIMAL(12, 1) DEFAULT 0,
     date_prochain_entretien DATE,

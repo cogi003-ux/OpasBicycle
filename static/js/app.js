@@ -8,7 +8,7 @@ const TOUR_DU_MONDE_KM = 40075;
 
 let toursData = { tours: [], stats: {}, progression: {} };
 let currentModalTour = null;
-let garageKmFromTours = { Oswald: 0, Alexandre: 0, Damien: 0 };
+let garageKmFromTours = { Oswald: 0, Titine: 0, Alexandre: 0, Damien: 0 };
 let lastKnownVersion = null;
 let lastKnownToursCount = 0;
 let lastKnownFirstTourId = null;
@@ -32,6 +32,7 @@ async function initializeApp() {
         else if (factureModal && factureModal.style.display === 'flex') closeFactureModal();
     });
     initNavigation();
+    initHistoryTabs();
     initLiveNotification();
     clearAppBadge();
 }
@@ -81,7 +82,7 @@ async function loadEntries() {
     const historySection = document.getElementById('historySection');
     const emptyStats = { total_global: 0, total_aujourdhui: 0, total_semaine: 0, total_mois: 0, total_annee: 0 };
     const emptyProg = { ville_actuelle: '🏠 Kettenis', prochaine_ville: '🇧🇪 Liège', km_restants: 30, progression: 0, distance_kettenis: 30 };
-    const emptyChallenge = { total_oswald: 0, total_alexandre: 0, total_damien: 0, leader: 'Unentschieden', difference: 0, world_tour_oswald: { km: 0, pct: 0, target: TOUR_DU_MONDE_KM }, world_tour_alexandre: { km: 0, pct: 0, target: TOUR_DU_MONDE_KM }, world_tour_damien: { km: 0, pct: 0, target: TOUR_DU_MONDE_KM } };
+    const emptyChallenge = { total_oswald: 0, total_titine: 0, total_alexandre: 0, total_damien: 0, leader: 'Unentschieden', difference: 0, world_tour_oswald: { km: 0, pct: 0, target: TOUR_DU_MONDE_KM }, world_tour_titine: { km: 0, pct: 0, target: TOUR_DU_MONDE_KM }, world_tour_alexandre: { km: 0, pct: 0, target: TOUR_DU_MONDE_KM }, world_tour_damien: { km: 0, pct: 0, target: TOUR_DU_MONDE_KM } };
     try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -94,8 +95,8 @@ async function loadEntries() {
         if (progressionSection) progressionSection.style.display = 'block';
         if (challengeSection) challengeSection.style.display = 'block';
         if (historySection) historySection.style.display = 'block';
-        updateStats({ stats_oswald: data.stats_oswald || emptyStats, stats_alexandre: data.stats_alexandre || emptyStats, stats_damien: data.stats_damien || emptyStats });
-        updateProgression({ progression_oswald: data.progression_oswald || emptyProg, progression_alexandre: data.progression_alexandre || emptyProg, progression_damien: data.progression_damien || emptyProg });
+        updateStats({ stats_oswald: data.stats_oswald || emptyStats, stats_titine: data.stats_titine || emptyStats, stats_alexandre: data.stats_alexandre || emptyStats, stats_damien: data.stats_damien || emptyStats });
+        updateProgression({ progression_oswald: data.progression_oswald || emptyProg, progression_titine: data.progression_titine || emptyProg, progression_alexandre: data.progression_alexandre || emptyProg, progression_damien: data.progression_damien || emptyProg });
         const ch = data.challenge || emptyChallenge;
         updateChallenge(ch);
         updateHistoryComparativeBar(ch);
@@ -109,26 +110,44 @@ async function loadEntries() {
         if (progressionSection) progressionSection.style.display = 'block';
         if (challengeSection) challengeSection.style.display = 'block';
         if (historySection) historySection.style.display = 'block';
-        updateStats({ stats_oswald: emptyStats, stats_alexandre: emptyStats, stats_damien: emptyStats });
-        updateProgression({ progression_oswald: emptyProg, progression_alexandre: emptyProg, progression_damien: emptyProg });
+        updateStats({ stats_oswald: emptyStats, stats_titine: emptyStats, stats_alexandre: emptyStats, stats_damien: emptyStats });
+        updateProgression({ progression_oswald: emptyProg, progression_titine: emptyProg, progression_alexandre: emptyProg, progression_damien: emptyProg });
         updateChallenge(emptyChallenge);
-        updateHistoryComparativeBar({ total_oswald: 0, total_alexandre: 0, total_damien: 0 });
+        updateHistoryComparativeBar({ total_oswald: 0, total_titine: 0, total_alexandre: 0, total_damien: 0 });
         setEmptyToursLists();
     }
     startLiveNotificationCheck();
 }
 
 function setEmptyToursLists() {
-    ['toursListOswald', 'toursListAlexandre', 'toursListDamien'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = '<p class="empty-history">Keine Touren</p>'; });
+    ['toursListOswald', 'toursListTitine', 'toursListAlexandre', 'toursListDamien'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = '<p class="empty-history">Keine Touren</p>'; });
+}
+
+function initHistoryTabs() {
+    const btns = document.querySelectorAll('.history-tab-btn');
+    const panels = document.querySelectorAll('.history-tab-panel');
+    if (!btns.length || !panels.length) return;
+    btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const user = btn.dataset.user;
+            btns.forEach(b => { b.classList.remove('history-tab-active'); b.setAttribute('aria-pressed', 'false'); });
+            btn.classList.add('history-tab-active');
+            btn.setAttribute('aria-pressed', 'true');
+            panels.forEach(p => {
+                if (p.id === `historyPanel${user}`) { p.classList.remove('history-tab-hidden'); p.classList.add('history-tab-active'); }
+                else { p.classList.remove('history-tab-active'); p.classList.add('history-tab-hidden'); }
+            });
+        });
+    });
 }
 
 function displayTours(tours) {
-    const lists = { Oswald: document.getElementById('toursListOswald'), Alexandre: document.getElementById('toursListAlexandre'), Damien: document.getElementById('toursListDamien') };
+    const lists = { Oswald: document.getElementById('toursListOswald'), Titine: document.getElementById('toursListTitine'), Alexandre: document.getElementById('toursListAlexandre'), Damien: document.getElementById('toursListDamien') };
     Object.values(lists).forEach(el => { if (el) el.innerHTML = ''; });
     if (!tours || tours.length === 0) { Object.values(lists).forEach(el => { if (el) el.innerHTML = '<p class="empty-history">Keine Touren</p>'; }); return; }
-    const toursByUser = { Oswald: [], Alexandre: [], Damien: [] };
+    const toursByUser = { Oswald: [], Titine: [], Alexandre: [], Damien: [] };
     tours.forEach(t => { const u = normalizeUser(t.Utilisateur); if (toursByUser[u]) toursByUser[u].push(t); else toursByUser.Oswald.push(t); });
-    ['Oswald', 'Alexandre', 'Damien'].forEach(user => {
+    ['Oswald', 'Titine', 'Alexandre', 'Damien'].forEach(user => {
         const tourList = toursByUser[user];
         const targetList = lists[user];
         if (!targetList) return;
@@ -146,7 +165,8 @@ function displayTours(tours) {
             const parsed = parseTourDate(tour.Date);
             const photoThumbHtml = hasPhotos ? `<div class="tour-photo-compact"><img src="${escapeHtml(firstPhotoUrl)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><span class="tour-photo-icon-fallback" style="display:none">📸</span></div>` : '';
             const userKey = user.toLowerCase();
-            tourItem.innerHTML = `<div class="tour-mobile-row"><div class="tour-mobile-calendar"><div class="tour-date-icon"><span class="tour-cal-day">${parsed.day}</span><span class="tour-cal-month">${parsed.month}</span></div></div><div class="tour-mobile-center"><span class="tour-mobile-km">${formatDistance(tour.Km || 0)}</span>${photoThumbHtml}</div><button class="btn-details" type="button">Détails</button></div>${photoPreviewHtml}<div class="tour-field tour-desktop-only"><strong>Datum</strong><div class="tour-datum-row"><div class="tour-date-icon" title="${escapeHtml(tour.Date || '')}"><span class="tour-cal-day">${parsed.day}</span><span class="tour-cal-month">${parsed.month}</span></div><span>${tour.Date || ''}</span></div><span class="tour-user-pill tour-user-pill-${userKey}" title="${user}">${ { Oswald: '🌳', Alexandre: '🌴', Damien: '⚡' }[user] } ${user}</span>${tour.Wetter && String(tour.Wetter).trim() && tour.Wetter !== 'N/A' ? `<span class="tour-wetter">🌤️ ${escapeHtml(String(tour.Wetter).trim())}</span>` : ''}</div><div class="tour-field tour-desktop-only"><strong>Start</strong><span>${tour.Start || ''}</span></div><div class="tour-field tour-desktop-only"><strong>Ziel</strong><span>${tour.Ziel || ''}</span></div><div class="tour-field tour-desktop-only"><strong>Km</strong><span>${formatDistance(tour.Km || 0)}</span></div>${tour.Etape && tour.Etape !== 'NaN' && tour.Etape !== 'nan' && tour.Etape !== 'N/A' ? `<div class="tour-field tour-desktop-only"><strong>Etape</strong><span>${tour.Etape}</span></div>` : ''}${tour.Bemerkungen && String(tour.Bemerkungen).trim() ? `<div class="tour-remark tour-desktop-only">${escapeHtml(String(tour.Bemerkungen).trim())}</div>` : ''}<button class="btn-delete tour-desktop-only" onclick="event.stopPropagation(); deleteTour(${realIndex})" title="Löschen">❌</button>`;
+            const userEmojiMap = { Oswald: '🌳', Titine: '🌸', Alexandre: '🌴', Damien: '⚡' };
+            tourItem.innerHTML = `<div class="tour-mobile-row"><div class="tour-mobile-calendar"><div class="tour-date-icon"><span class="tour-cal-day">${parsed.day}</span><span class="tour-cal-month">${parsed.month}</span></div></div><div class="tour-mobile-center"><span class="tour-mobile-km">${formatDistance(tour.Km || 0)}</span>${photoThumbHtml}</div><button class="btn-details" type="button">Détails</button></div>${photoPreviewHtml}<div class="tour-field tour-desktop-only"><strong>Datum</strong><div class="tour-datum-row"><div class="tour-date-icon" title="${escapeHtml(tour.Date || '')}"><span class="tour-cal-day">${parsed.day}</span><span class="tour-cal-month">${parsed.month}</span></div><span>${tour.Date || ''}</span></div><span class="tour-user-pill tour-user-pill-${userKey}" title="${user}">${userEmojiMap[user] || '🚲'} ${user}</span>${tour.Wetter && String(tour.Wetter).trim() && tour.Wetter !== 'N/A' ? `<span class="tour-wetter">🌤️ ${escapeHtml(String(tour.Wetter).trim())}</span>` : ''}</div><div class="tour-field tour-desktop-only"><strong>Start</strong><span>${tour.Start || ''}</span></div><div class="tour-field tour-desktop-only"><strong>Ziel</strong><span>${tour.Ziel || ''}</span></div><div class="tour-field tour-desktop-only"><strong>Km</strong><span>${formatDistance(tour.Km || 0)}</span></div>${tour.Etape && tour.Etape !== 'NaN' && tour.Etape !== 'nan' && tour.Etape !== 'N/A' ? `<div class="tour-field tour-desktop-only"><strong>Etape</strong><span>${tour.Etape}</span></div>` : ''}${tour.Bemerkungen && String(tour.Bemerkungen).trim() ? `<div class="tour-remark tour-desktop-only">${escapeHtml(String(tour.Bemerkungen).trim())}</div>` : ''}<button class="btn-delete tour-desktop-only" onclick="event.stopPropagation(); deleteTour(${realIndex})" title="Löschen">❌</button>`;
             tourItem.setAttribute('data-tour', tourDataAttr);
             tourItem.addEventListener('click', (e) => { if (!e.target.closest('.btn-delete')) { const data = tourItem.getAttribute('data-tour').replace(/&quot;/g, '"'); openTourModal(JSON.parse(data)); } });
             targetList.appendChild(tourItem);
@@ -155,14 +175,14 @@ function displayTours(tours) {
 }
 
 function updateStats(data) {
-    ['Oswald', 'Alexandre', 'Damien'].forEach((name, i) => {
-        const stats = data[`stats_${['oswald', 'alexandre', 'damien'][i]}`] || {};
+    ['Oswald', 'Titine', 'Alexandre', 'Damien'].forEach((name, i) => {
+        const stats = data[`stats_${['oswald', 'titine', 'alexandre', 'damien'][i]}`] || {};
         ['Aujourdhui', 'Semaine', 'Mois', 'Annee', 'Total'].forEach((suffix, j) => { const el = document.getElementById(`stat${name}${suffix}`); if (el) el.textContent = formatDistance(stats[['total_aujourdhui', 'total_semaine', 'total_mois', 'total_annee', 'total_global'][j]] || 0); });
     });
 }
 
 function updateChallenge(challenge) {
-    ['Oswald', 'Alexandre', 'Damien'].forEach(name => {
+    ['Oswald', 'Titine', 'Alexandre', 'Damien'].forEach(name => {
         const key = name.toLowerCase();
         const elTotal = document.getElementById(`total${name}`);
         if (elTotal) elTotal.textContent = formatDistance(challenge[`total_${key}`] || 0);
@@ -177,23 +197,24 @@ function updateChallenge(challenge) {
     const msgEl = document.getElementById('challengeMessage');
     if (msgEl) msgEl.textContent = challenge.leader === 'Unentschieden' ? 'Unentschieden! Keine Touren eingetragen oder gleiche Strecke.' : `${challenge.leader} führt mit ${formatDistance(challenge.difference || 0)} Vorsprung!`;
     const pct = (km) => Math.min(100, (km / TOUR_DU_MONDE_KM) * 100);
-    const mO = document.getElementById('challengeMarkerOswald'), mA = document.getElementById('challengeMarkerAlexandre'), mD = document.getElementById('challengeMarkerDamien');
+    const mO = document.getElementById('challengeMarkerOswald'), mT = document.getElementById('challengeMarkerTitine'), mA = document.getElementById('challengeMarkerAlexandre'), mD = document.getElementById('challengeMarkerDamien');
     if (mO) mO.style.left = `${pct(challenge.total_oswald || 0)}%`;
+    if (mT) mT.style.left = `${pct(challenge.total_titine || 0)}%`;
     if (mA) mA.style.left = `${pct(challenge.total_alexandre || 0)}%`;
     if (mD) mD.style.left = `${pct(challenge.total_damien || 0)}%`;
 }
 
 function updateHistoryComparativeBar(challenge) {
-    const o = challenge.total_oswald || 0, a = challenge.total_alexandre || 0, d = challenge.total_damien || 0;
-    const total = o + a + d;
-    let wO = 0, wA = 0, wD = 0;
-    if (total > 0) { const filled = Math.min(100, (total / TOUR_DU_MONDE_KM) * 100); wO = (o / total) * filled; wA = (a / total) * filled; wD = (d / total) * filled; }
-    const bO = document.getElementById('historyBarOswald'), bA = document.getElementById('historyBarAlexandre'), bD = document.getElementById('historyBarDamien');
-    if (bO) bO.style.width = `${wO}%`; if (bA) bA.style.width = `${wA}%`; if (bD) bD.style.width = `${wD}%`;
+    const o = challenge.total_oswald || 0, t = challenge.total_titine || 0, a = challenge.total_alexandre || 0, d = challenge.total_damien || 0;
+    const total = o + t + a + d;
+    let wO = 0, wT = 0, wA = 0, wD = 0;
+    if (total > 0) { const filled = Math.min(100, (total / TOUR_DU_MONDE_KM) * 100); wO = (o / total) * filled; wT = (t / total) * filled; wA = (a / total) * filled; wD = (d / total) * filled; }
+    const bO = document.getElementById('historyBarOswald'), bT = document.getElementById('historyBarTitine'), bA = document.getElementById('historyBarAlexandre'), bD = document.getElementById('historyBarDamien');
+    if (bO) bO.style.width = `${wO}%`; if (bT) bT.style.width = `${wT}%`; if (bA) bA.style.width = `${wA}%`; if (bD) bD.style.width = `${wD}%`;
 }
 
 function updateProgression(data) {
-    ['Oswald', 'Alexandre', 'Damien'].forEach(name => {
+    ['Oswald', 'Titine', 'Alexandre', 'Damien'].forEach(name => {
         const key = name.toLowerCase();
         const prog = data[`progression_${key}`] || {};
         const worldPct = prog.world_tour_pct ?? (prog.progression ?? 0) * 100;
@@ -208,9 +229,9 @@ function updateProgression(data) {
         if (elFill) elFill.style.width = `${pct}%`;
         if (elText) elText.textContent = formatPercent(pct);
     });
-    const progO = data.progression_oswald || {}, progA = data.progression_alexandre || {}, progD = data.progression_damien || {};
+    const progO = data.progression_oswald || {}, progT = data.progression_titine || {}, progA = data.progression_alexandre || {}, progD = data.progression_damien || {};
     const emailLink = document.getElementById('emailLink');
-    if (emailLink) emailLink.href = `mailto:cogi003@gmail.com?subject=${encodeURIComponent("Opa's Bicycle Update")}&body=${encodeURIComponent(`Gesamt: ${formatDistance(toursData.stats?.total_global || 0)}\nOswald: ${progO.ville_actuelle || '🏠 Kettenis'}\nAlexandre: ${progA.ville_actuelle || '🏠 Kettenis'}\nDamien: ${progD.ville_actuelle || '🏠 Kettenis'}`)}`;
+    if (emailLink) emailLink.href = `mailto:cogi003@gmail.com?subject=${encodeURIComponent("Opa's Bicycle Update")}&body=${encodeURIComponent(`Gesamt: ${formatDistance(toursData.stats?.total_global || 0)}\nOswald: ${progO.ville_actuelle || '🏠 Kettenis'}\nTitine: ${progT.ville_actuelle || '🏠 Kettenis'}\nAlexandre: ${progA.ville_actuelle || '🏠 Kettenis'}\nDamien: ${progD.ville_actuelle || '🏠 Kettenis'}`)}`;
 }
 
 async function loadGarage() {
@@ -227,8 +248,8 @@ async function loadGarage() {
 function renderGarageCards(bikes) {
     const gallery = document.getElementById('garageGallery');
     if (!gallery) return;
-    const userColors = { Oswald: 'var(--user-oswald)', Alexandre: 'var(--user-alexandre)', Damien: 'var(--user-damien)' };
-    const userEmoji = { Oswald: '🌳', Alexandre: '🌴', Damien: '⚡' };
+    const userColors = { Oswald: 'var(--user-oswald)', Titine: 'var(--user-titine)', Alexandre: 'var(--user-alexandre)', Damien: 'var(--user-damien)' };
+    const userEmoji = { Oswald: '🌳', Titine: '🌸', Alexandre: '🌴', Damien: '⚡' };
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const isSoon = (ds) => { if (!ds) return false; const d = new Date(ds); d.setHours(0, 0, 0, 0); const diff = (d - today) / (1000 * 60 * 60 * 24); return diff >= 0 && diff <= 30; };
     const isOverdue = (ds) => { if (!ds) return false; const d = new Date(ds); d.setHours(0, 0, 0, 0); return d < today; };
@@ -444,7 +465,7 @@ function checkForUpdates() {
 
 function initLiveNotification() { const btn = document.getElementById('liveNotificationBtn'); if (btn) btn.addEventListener('click', () => { clearAppBadge(); window.location.reload(true); }); }
 
-function normalizeUser(u) { const v = (u || 'Oswald').trim(); return v === 'Opa' ? 'Oswald' : v; }
+function normalizeUser(u) { const v = (u || 'Oswald').trim(); if (v === 'Opa') return 'Oswald'; return ['Oswald', 'Titine', 'Alexandre', 'Damien'].includes(v) ? v : 'Oswald'; }
 
 function parseTourDate(dateStr) {
     if (!dateStr || typeof dateStr !== 'string') return { day: '?', month: '?' };

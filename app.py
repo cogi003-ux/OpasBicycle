@@ -20,10 +20,10 @@ FICHIER_DATA = "journal_velo.csv"
 USE_SUPABASE = os.getenv('SUPABASE_URL') and os.getenv('SUPABASE_KEY')
 TOUR_DU_MONDE_KM = 40075  # Circonférence de la Terre en km
 
-USERS = ['Oswald', 'Alexandre', 'Damien']
+USERS = ['Oswald', 'Titine', 'Alexandre', 'Damien']
 
 def _normalize_utilisateur(val):
-    """Normalise l'utilisateur : Oswald, Alexandre ou Damien. Opa -> Oswald pour rétrocompatibilité."""
+    """Normalise l'utilisateur : Oswald, Titine, Alexandre ou Damien. Opa -> Oswald pour rétrocompatibilité."""
     v = str(val or 'Oswald').strip()
     if v.upper() == 'MOI':
         return 'Damien'
@@ -138,19 +138,23 @@ def get_tours():
             'tours': [],
             'stats': empty_stats,
             'stats_oswald': empty_stats.copy(),
+            'stats_titine': empty_stats.copy(),
             'stats_alexandre': empty_stats.copy(),
             'stats_damien': empty_stats.copy(),
             'progression': empty_prog,
             'progression_oswald': empty_prog.copy(),
+            'progression_titine': empty_prog.copy(),
             'progression_alexandre': empty_prog.copy(),
             'progression_damien': empty_prog.copy(),
             'challenge': {
                 'total_oswald': 0,
+                'total_titine': 0,
                 'total_alexandre': 0,
                 'total_damien': 0,
                 'leader': 'Unentschieden',
                 'difference': 0,
                 'world_tour_oswald': {'km': 0, 'pct': 0, 'target': TOUR_DU_MONDE_KM},
+                'world_tour_titine': {'km': 0, 'pct': 0, 'target': TOUR_DU_MONDE_KM},
                 'world_tour_alexandre': {'km': 0, 'pct': 0, 'target': TOUR_DU_MONDE_KM},
                 'world_tour_damien': {'km': 0, 'pct': 0, 'target': TOUR_DU_MONDE_KM}
             }
@@ -164,6 +168,7 @@ def get_tours():
         df_util['Utilisateur'] = 'Oswald'
     df_util['Utilisateur'] = df_util['Utilisateur'].fillna('Oswald').astype(str).apply(_normalize_utilisateur)
     df_oswald = df_util[df_util['Utilisateur'] == 'Oswald']
+    df_titine = df_util[df_util['Utilisateur'] == 'Titine']
     df_alexandre = df_util[df_util['Utilisateur'] == 'Alexandre']
     df_damien = df_util[df_util['Utilisateur'] == 'Damien']
     
@@ -185,6 +190,7 @@ def get_tours():
     total_mois = stats_global['total_mois']
     total_annee = stats_global['total_annee']
     stats_oswald = _stats(df_oswald)
+    stats_titine = _stats(df_titine)
     stats_alexandre = _stats(df_alexandre)
     stats_damien = _stats(df_damien)
     
@@ -501,37 +507,43 @@ def get_tours():
             'distance_kettenis': float(distance_kettenis)
         }
 
-    # Calcul du Challenge Generationen-Duell (Oswald, Alexandre, Damien)
+    # Calcul du Challenge Generationen-Duell (Oswald, Titine, Alexandre, Damien)
     total_oswald = stats_oswald['total_global']
+    total_titine = stats_titine['total_global']
     total_alexandre = stats_alexandre['total_global']
     total_damien = stats_damien['total_global']
-    totals = [('Oswald', total_oswald), ('Alexandre', total_alexandre), ('Damien', total_damien)]
-    leader_km = max(s['total_global'] for s in [stats_oswald, stats_alexandre, stats_damien])
+    totals = [('Oswald', total_oswald), ('Titine', total_titine), ('Alexandre', total_alexandre), ('Damien', total_damien)]
+    leader_km = max(s['total_global'] for s in [stats_oswald, stats_titine, stats_alexandre, stats_damien])
     leaders = [u for u, t in totals if t == leader_km]
     leader = leaders[0] if len(leaders) == 1 else 'Unentschieden'
     second_km = max((t for u, t in totals if t < leader_km), default=0)
     difference = leader_km - second_km
 
     pct_oswald = min(100.0, (total_oswald / TOUR_DU_MONDE_KM) * 100)
+    pct_titine = min(100.0, (total_titine / TOUR_DU_MONDE_KM) * 100)
     pct_alexandre = min(100.0, (total_alexandre / TOUR_DU_MONDE_KM) * 100)
     pct_damien = min(100.0, (total_damien / TOUR_DU_MONDE_KM) * 100)
 
     challenge = {
         'total_oswald': float(total_oswald),
+        'total_titine': float(total_titine),
         'total_alexandre': float(total_alexandre),
         'total_damien': float(total_damien),
         'leader': leader,
         'difference': float(difference),
         'world_tour_oswald': {'km': float(total_oswald), 'pct': float(pct_oswald), 'target': TOUR_DU_MONDE_KM},
+        'world_tour_titine': {'km': float(total_titine), 'pct': float(pct_titine), 'target': TOUR_DU_MONDE_KM},
         'world_tour_alexandre': {'km': float(total_alexandre), 'pct': float(pct_alexandre), 'target': TOUR_DU_MONDE_KM},
         'world_tour_damien': {'km': float(total_damien), 'pct': float(pct_damien), 'target': TOUR_DU_MONDE_KM}
     }
 
     progression_oswald = _compute_progression(total_oswald, etapes)
+    progression_titine = _compute_progression(total_titine, etapes)
     progression_alexandre = _compute_progression(total_alexandre, etapes)
     progression_damien = _compute_progression(total_damien, etapes)
     progression_global = _compute_progression(total_global, etapes)
     progression_oswald['world_tour_pct'] = float(pct_oswald)
+    progression_titine['world_tour_pct'] = float(pct_titine)
     progression_alexandre['world_tour_pct'] = float(pct_alexandre)
     progression_damien['world_tour_pct'] = float(pct_damien)
 
@@ -578,10 +590,12 @@ def get_tours():
         'tours': tours,
         'stats': stats_global,
         'stats_oswald': stats_oswald,
+        'stats_titine': stats_titine,
         'stats_alexandre': stats_alexandre,
         'stats_damien': stats_damien,
         'progression': progression_global,
         'progression_oswald': progression_oswald,
+        'progression_titine': progression_titine,
         'progression_alexandre': progression_alexandre,
         'progression_damien': progression_damien,
         'challenge': challenge
@@ -741,11 +755,11 @@ def get_entretien():
     try:
         bikes = get_all_entretien()
         # Sync km: total des sorties par utilisateur
-        km_from_tours = {'Oswald': 0, 'Alexandre': 0, 'Damien': 0}
+        km_from_tours = {'Oswald': 0, 'Titine': 0, 'Alexandre': 0, 'Damien': 0}
         try:
             df = charger_donnees()
             if not df.empty and 'Km' in df.columns and 'Utilisateur' in df.columns:
-                for u in ['Oswald', 'Alexandre', 'Damien']:
+                for u in ['Oswald', 'Titine', 'Alexandre', 'Damien']:
                     subset = df[df['Utilisateur'] == u]
                     km_from_tours[u] = float(subset['Km'].sum()) if not subset.empty else 0
         except Exception:
